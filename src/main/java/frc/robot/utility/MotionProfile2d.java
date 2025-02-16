@@ -40,7 +40,7 @@ public class MotionProfile2d {
     /**
      * Updates the motion profile's current target position
      */
-    public void update() {
+    public Vector2d update() {
 
         double timeSince = runTime.time();
         runTime.reset();
@@ -80,6 +80,7 @@ public class MotionProfile2d {
         if (overshotTarget) MovingTarget = Target; // set to final target if overshot
         else MovingTarget = newMovingTarget;
 
+        return MovingTarget;
     }
 
     /**

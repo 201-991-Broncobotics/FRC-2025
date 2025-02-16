@@ -1,0 +1,56 @@
+package frc.robot.utility;
+
+public class Functions {
+
+    /** Finds the smallest difference between two angles or gets the equivalent angle between -180 and
+     * 180 when the currentAngle is 0 (and wrapAngle is 360).
+     * A wrapAngle of 180 treats the targetAngle and the angle directly opposite of targetAngle the same
+     *
+     * @param currentAngle in degrees
+     * @param targetAngle in degrees
+     * @param wrapAngle Should be 360 unless you are doing a swerve module
+     */
+    public static double angleDifferenceDeg(double currentAngle, double targetAngle, int wrapAngle) {
+        double result1 = Math.floorMod(Math.round((targetAngle - currentAngle) * 100), wrapAngle * 100L) * 0.01;
+        double result2 = Math.floorMod(Math.round((targetAngle - currentAngle) * 100), -wrapAngle * 100L) * 0.01;
+        if (Math.abs(result1) <= Math.abs(result2)) return result1;
+        else return result2;
+    }
+    /** Finds the smallest difference between two angles or gets the equivalent angle between -pi and
+     * pi when the currentAngle is 0 (and wrapAngle is 2pi).
+     * A wrapAngle of pi treats the targetAngle and the angle directly opposite of targetAngle the same
+     *
+     * @param currentAngle in radians
+     * @param targetAngle in radians
+     * @param wrapAngle Should be 2pi unless you are doing a swerve module
+     */
+    public static double angleDifference(double currentAngle, double targetAngle, double wrapAngle) {
+        return angleDifferenceDeg(Math.toDegrees(currentAngle), Math.toDegrees(targetAngle), (int) Math.round(Math.toDegrees(wrapAngle)));
+    }
+    /**
+     * Finds the equivalent angle between 0 and 360
+     * 
+     * @param angle in degrees
+     */
+    public static double normalizeAngleDeg(double angle) {
+        return angleDifferenceDeg(-180, angle, 360) + 180;
+    }
+    /**
+     * Finds the equivalent angle between 0 and 2pi
+     * 
+     * @param angle in radians
+     */
+    public static double normalizeAngle(double angle) {
+        return angleDifference(-2*Math.PI, angle, 2*Math.PI) + 2*Math.PI;
+    }
+    /**
+     * Works the same way as the round function in python. 
+     * @param input double
+     * @param decimalPlaces Number of decimal places to round to
+     */
+    public static double round(double input, int decimalPlaces) {
+        return Math.round(input * (Math.pow(10, decimalPlaces))) / (Math.pow(10, decimalPlaces));
+    }
+
+
+}
