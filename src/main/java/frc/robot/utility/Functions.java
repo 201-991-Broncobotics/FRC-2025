@@ -52,5 +52,13 @@ public class Functions {
         return Math.round(input * (Math.pow(10, decimalPlaces))) / (Math.pow(10, decimalPlaces));
     }
 
+    /**
+     * Limits a value to between the min and max. 
+     */
+    public static double minMaxValue(double min, double max, double value) {
+        if (value > max) return max;
+        else return Math.max(value, min);
+    }
+
 
 }

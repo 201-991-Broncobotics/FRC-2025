@@ -52,20 +52,20 @@ public class MotionProfile2d {
             double OptimalSlowdownSpeed;
 
 
-            if (!(distanceLeft.getMag() == 0)) {
+            if (!(distanceLeft.mag() == 0)) {
                 if (maxDeceleration < 0) OptimalSlowdownSpeed = Math.sqrt(-2 * maxDeceleration * Target.distFrom(MovingTarget)); // finds the maximum speed possible to get to the target without decelerating faster than max
                 else OptimalSlowdownSpeed = maxSpeed;
                 if (OptimalSlowdownSpeed > maxSpeed) OptimalSlowdownSpeed = maxSpeed;
 
 
                 if (maxAcceleration > 0) { // accelerates until is at max speed or is at optimal speed
-                    CurrentTargetVelocity = CurrentTargetVelocity.plus((new Vector2d()).withMag(maxAcceleration).withAngle(distanceLeft.getAngle()));
-                } else CurrentTargetVelocity = CurrentTargetVelocity.withMag(OptimalSlowdownSpeed);
-                if (CurrentTargetVelocity.getMag() > OptimalSlowdownSpeed) CurrentTargetVelocity = CurrentTargetVelocity.withMag(OptimalSlowdownSpeed);
+                    CurrentTargetVelocity = CurrentTargetVelocity.plus((new Vector2d()).withMag(maxAcceleration).withAngle(distanceLeft.angle()));
+                } else CurrentTargetVelocity.setMag(OptimalSlowdownSpeed);
+                if (CurrentTargetVelocity.mag() > OptimalSlowdownSpeed) CurrentTargetVelocity.setMag(OptimalSlowdownSpeed);
 
             }
         } else { // move the movingTargetPosition at maxSpeed towards the set targetPosition until the targetPosition is reached
-            CurrentTargetVelocity = (new Vector2d()).withMag(maxSpeed).withAngle(distanceLeft.getAngle());
+            CurrentTargetVelocity = (new Vector2d()).withMag(maxSpeed).withAngle(distanceLeft.angle());
         }
 
         Vector2d newMovingTarget = MovingTarget.plus(CurrentTargetVelocity.times(timeSince)); // move moving target by current velocity

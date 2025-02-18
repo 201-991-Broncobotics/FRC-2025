@@ -43,7 +43,7 @@ public class Vector2d {
     /**
      * Returns the angle in radians of the vector
      */
-    public double getAngle() {
+    public double angle() {
         if (y == 0 && x == 0) {
             return 0;
         } else return Math.atan2(y, x);
@@ -52,7 +52,7 @@ public class Vector2d {
     /**
      * Returns the magnitude of the vector
      */
-    public double getMag() {
+    public double mag() {
         return Math.hypot(x, y);
     }
 
@@ -64,7 +64,7 @@ public class Vector2d {
     }
 
     /**
-     * Returns the vector at the same angle but at the inputted magnitude
+     * Returns a vector at the same angle but at the inputted magnitude. DOES NOT CHANGE ORIGINAL VECTOR
      */
     public Vector2d withMag(double m) {
         double angle = Math.atan2(y, x);
@@ -72,10 +72,28 @@ public class Vector2d {
     }
 
     /**
-     * Returns the vector at the same magnitude but at the inputted angle in radians
+     * Returns a vector at the same magnitude but at the inputted angle in radians. DOES NOT CHANGE ORIGINAL VECTOR
      */
     public Vector2d withAngle(double a) {
         double mag = Math.hypot(x, y);
         return new Vector2d(mag * Math.cos(a), mag * Math.sin(a));
+    }
+
+    /**
+     * Set the vector to the same angle but at the inputted magnitude.
+     */
+    public void setMag(double m) {
+        double angle = Math.atan2(y, x);
+        x = m * Math.cos(angle);
+        y = m * Math.sin(angle);
+    }
+
+    /**
+     * Sets the vector to the same magnitude but at the inputted angle in radians.
+     */
+    public void setAngle(double a) {
+        double mag = Math.hypot(x, y);
+        x = mag * Math.cos(a);
+        y = mag * Math.sin(a);
     }
 }
