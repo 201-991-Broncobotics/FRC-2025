@@ -3,8 +3,11 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.Constants.AlgaeArmConstants;
+import frc.robot.Constants.MotorConstants;
 import frc.robot.utility.MotionProfile2d;
 import frc.robot.utility.Vector2d;
 import frc.robot.utility.ElapsedTime;
@@ -57,6 +60,10 @@ public class AlgaeArmSystem extends SubsystemBase {
     private ElapsedTime frameTimer;
     private double frameTime = 0.01;
 
+    private TalonFX bottomPivot;
+    private TalonFX topPivot;
+   
+
 
     /**
      * The 0 angles for each joint is when the arm is perfectly inside the segment it is attached to 
@@ -70,9 +77,9 @@ public class AlgaeArmSystem extends SubsystemBase {
         else RightBias = false;
 
         // initialize motors
-
+        bottomPivot = new TalonFX(MotorConstants.alageBottomPivotID);
+        topPivot = new TalonFX(MotorConstants.alageTopPivotID);
         // initialize PIDs
-
         L1Encoder = () -> 0 + L1Offset; //TODO: add get Encoder position and conversion to radians
         L2Encoder = () -> 0 + L2Offset; //TODO: add get Encoder position and conversion to radians
 
@@ -139,11 +146,10 @@ public class AlgaeArmSystem extends SubsystemBase {
         
         // Add the gravity/acceleration compensation power
 
+
         // Give power to motors
-        /* 
-        motor.set();
-        otherMotor.set();
-        */
+        bottomPivot.setVoltage(toVoltage(L1MotorPower));
+        topPivot.setVoltage(toVoltage(L2MotorPower));
 
         // Telemetry
 
@@ -154,11 +160,14 @@ public class AlgaeArmSystem extends SubsystemBase {
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
     }
-
-
-
-
-
+    private double toVoltage(double power){
+        if(Math.abs(power)<AlgaeArmSettings.voltageTolerance)
+        return 0;
+        
+        power = (AlgaeArmConstants.maxVoltage-AlgaeArmConstants.minVoltage)*power + (power/Math.abs(power))*AlgaeArmConstants.minVoltage; //adds the min value + the range between the max and min voltage to get a number between the min and max proporitnal to the power
+        return power;
+        
+    }
 
 
 

@@ -13,6 +13,10 @@ package frc.robot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+    public static class MotorConstants{
+        public static final int alageBottomPivotID =8;
+        public static final int alageTopPivotID = 9;
+    }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;
     }
@@ -23,6 +27,9 @@ public final class Constants {
 
         public static final double LowerJointForward = 9.25; // inches between lower joint and center of robot frame
         public static final double LowerJointHeight = 14.227224; // inches between lower joint and floor
+
+        public static final double maxVoltage = 12; 
+        public static final double minVoltage = 6; 
 
     }
 
