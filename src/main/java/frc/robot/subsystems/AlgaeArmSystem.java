@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 
@@ -80,8 +81,8 @@ public class AlgaeArmSystem extends SubsystemBase {
         bottomPivot = new TalonFX(MotorConstants.alageBottomPivotID);
         topPivot = new TalonFX(MotorConstants.alageTopPivotID);
         // initialize PIDs
-        L1Encoder = () -> 0 + L1Offset; //TODO: add get Encoder position and conversion to radians
-        L2Encoder = () -> 0 + L2Offset; //TODO: add get Encoder position and conversion to radians
+        L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() + L1Offset; //I think this should get the currect position but will need testing
+        L2Encoder = () -> bottomPivot.getPosition().getValueAsDouble() + L2Offset; 
 
         CurrentL1Angle = L1Encoder.getAsDouble();
         CurrentL2Angle = L2Encoder.getAsDouble();
@@ -152,6 +153,8 @@ public class AlgaeArmSystem extends SubsystemBase {
         topPivot.setVoltage(toVoltage(L2MotorPower));
 
         // Telemetry
+        SmartDashboard.putString("Alge Encoder 1", ""+L1Encoder);
+        SmartDashboard.putString("Alge Encoder 1", ""+L2Encoder);
 
     }
 

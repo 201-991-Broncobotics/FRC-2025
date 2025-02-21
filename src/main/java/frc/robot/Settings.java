@@ -8,6 +8,9 @@ import frc.robot.Constants.AlgaeArmConstants;
  * often so that they are easier to find than scrolling through a massive constants class
  */
 public class Settings {
+    public static class ClimbingSettings{
+        public static double climbingSpeed = 1;
+    }
 
     public static class AlgaeArmSettings {
 
