@@ -153,8 +153,8 @@ public class AlgaeArmSystem extends SubsystemBase {
         topPivot.setVoltage(toVoltage(L2MotorPower));
 
         // Telemetry
-        SmartDashboard.putString("Alge Encoder 1", ""+L1Encoder);
-        SmartDashboard.putString("Alge Encoder 1", ""+L2Encoder);
+        //SmartDashboard.putString("Alge Encoder 1", ""+L1Encoder);
+        //SmartDashboard.putString("Alge Encoder 1", ""+L2Encoder);
 
     }
 

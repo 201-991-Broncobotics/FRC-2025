@@ -41,7 +41,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
     public final ClimbingSystem climbingSystem = new ClimbingSystem(operatorJoystick.rightBumper(), operatorJoystick.rightTrigger());
-    //public final CoralArmSystem coralArmSystem = new CoralArmSystem();
+    public final CoralArmSystem coralArmSystem = new CoralArmSystem(() -> operatorJoystick.getRightY());
 
     public RobotContainer() {
         configureBindings();

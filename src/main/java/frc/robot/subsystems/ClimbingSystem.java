@@ -20,8 +20,8 @@ public class ClimbingSystem extends SubsystemBase {
     public ClimbingSystem(BooleanSupplier controlUp, BooleanSupplier controlDown) {
         climbingMotor = new TalonFX(MotorConstants.climbingMotorID);
         climbingSpeed = ClimbingSettings.climbingSpeed;
-        controlUp = this.controlUp;
-        controlDown = this.controlDown;
+        this.controlUp = controlUp;
+        this.controlDown = controlDown;
     }
 
 
