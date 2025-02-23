@@ -4,6 +4,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MotorConstants;
@@ -16,6 +17,8 @@ public class CoralArmSystem extends SubsystemBase {
 
     private DoubleSupplier elevatorControl;
 
+    private ElevatorFeedforward feedforward;
+
     private TalonFX leftElevator;
     private TalonFX rightElevator;
     private TalonFX coralPivot;
@@ -26,6 +29,7 @@ public class CoralArmSystem extends SubsystemBase {
         rightElevator = new TalonFX(MotorConstants.coralRightElevatorID);
         coralPivot = new TalonFX(MotorConstants.coralPivotID);
         this.elevatorControl=elevatorControl;
+
     }
     public void setPos(double pos){
         TargetElevatorHeight = pos;
@@ -37,10 +41,13 @@ public class CoralArmSystem extends SubsystemBase {
     public void periodic() {
         leftElevator.set(-elevatorControl.getAsDouble());
         rightElevator.set(elevatorControl.getAsDouble());
+        //Update position
+        CurrentElevatorHeight = rightElevator.getPosition().getValueAsDouble(); //add offset later
 
         //Smart Dashboard updates
-        //SmartDashboard.putString("Left Elevator", ""+leftElevator.getPosition());
-        //`SmartDashboard.putString("Right Elevator", ""+rightElevator.getPosition());
+        
+        SmartDashboard.putNumber("Left Elevator", leftElevator.getPosition().getValueAsDouble());
+        SmartDashboard.putString("Right Elevator", ""+CurrentElevatorHeight);
     }
 
     @Override
