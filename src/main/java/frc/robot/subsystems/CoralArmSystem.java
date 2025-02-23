@@ -7,12 +7,12 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Settings;
 import frc.robot.Constants.MotorConstants;
 
 public class CoralArmSystem extends SubsystemBase {
 
-    private double TargetElevatorHeight, TargetArmAngle;
-
+    private double TargetElevatorHeight, TargetArmAngle, ElevatorError;
     private double CurrentElevatorHeight, CurrentArmAngle;
 
     private DoubleSupplier elevatorControl;
@@ -24,30 +24,45 @@ public class CoralArmSystem extends SubsystemBase {
     private TalonFX coralPivot;
 
 
-    public CoralArmSystem(DoubleSupplier elevatorControl) {
+    public CoralArmSystem() {
         leftElevator = new TalonFX(MotorConstants.coralLeftElevatorID);
         rightElevator = new TalonFX(MotorConstants.coralRightElevatorID);
         coralPivot = new TalonFX(MotorConstants.coralPivotID);
-        this.elevatorControl=elevatorControl;
+        feedforward = new ElevatorFeedforward(Settings.CoralSystemSettings.kS, Settings.CoralSystemSettings.kG, Settings.CoralSystemSettings.kV, 0);
 
     }
     public void setPos(double pos){
         TargetElevatorHeight = pos;
-
     }
 
 
     @Override
     public void periodic() {
-        leftElevator.set(-elevatorControl.getAsDouble());
-        rightElevator.set(elevatorControl.getAsDouble());
-        //Update position
-        CurrentElevatorHeight = rightElevator.getPosition().getValueAsDouble(); //add offset later
-
-        //Smart Dashboard updates
         
-        SmartDashboard.putNumber("Left Elevator", leftElevator.getPosition().getValueAsDouble());
-        SmartDashboard.putString("Right Elevator", ""+CurrentElevatorHeight);
+        //Update position
+        if (rightElevator.getPosition().getValueAsDouble()<0) 
+            CurrentElevatorHeight =0;
+        else CurrentElevatorHeight = rightElevator.getPosition().getValueAsDouble(); //add offset later
+
+        //Calculate voltage
+        ElevatorError=TargetElevatorHeight-CurrentElevatorHeight;
+        //Move motors
+        if(Math.abs(ElevatorError)<Settings.CoralSystemSettings.elevatorTolerance) {
+            leftElevator.set(-feedforward.calculate(0));
+        rightElevator.set(feedforward.calculate(0));
+        }
+        else{
+            leftElevator.set(-feedforward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
+            rightElevator.set(feedforward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
+        }
+        
+        //Smart Dashboard updates
+        SmartDashboard.putNumber("Right Elevator", CurrentElevatorHeight);
+    }
+    public boolean atPosition(){
+        if(Math.abs(ElevatorError)<Settings.CoralSystemSettings.elevatorTolerance)
+        return true;
+        return false;
     }
 
     @Override
