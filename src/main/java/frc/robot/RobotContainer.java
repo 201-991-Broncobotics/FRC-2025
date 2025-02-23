@@ -10,12 +10,18 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.commands.AlgaeArmTeleOpCommand;
+import frc.robot.commands.CoralArmTeleOpCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeArmSystem;
 import frc.robot.subsystems.ClimbingSystem;
@@ -41,7 +47,10 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
     public final ClimbingSystem climbingSystem = new ClimbingSystem(operatorJoystick.rightBumper(), operatorJoystick.rightTrigger());
-    public final CoralArmSystem coralArmSystem = new CoralArmSystem(() -> operatorJoystick.getRightY());
+    public final CoralArmSystem coralArmSystem = new CoralArmSystem();
+
+    private final CoralArmTeleOpCommand runElevatorUp = new CoralArmTeleOpCommand(coralArmSystem, 1);
+    private final CoralArmTeleOpCommand runElevatorDown = new CoralArmTeleOpCommand(coralArmSystem, -1);
 
     public RobotContainer() {
         configureBindings();
@@ -73,14 +82,15 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        operatorJoystick.leftBumper().onTrue(runElevatorUp);
+        operatorJoystick.leftTrigger().onTrue(runElevatorDown);
 
         // temporary Algae Arm controls
         algaeArmSystem.setDefaultCommand(new AlgaeArmTeleOpCommand(algaeArmSystem, 
             () -> -operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed, 
             () -> -operatorJoystick.getLeftX() * AlgaeArmSettings.maxJoystickMovementSpeed
         ));
-
-        drivetrain.registerTelemetry(logger::telemeterize);
+        //Coral Elevator Controls
     }
 
     public Command getAutonomousCommand() {
