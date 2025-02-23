@@ -26,6 +26,17 @@ public class Settings {
         public static PIDController UpperJointPID = new PIDController(0, 0, 0);
         public static double voltageTolerance =0.05; //tolerance for PID to stop jitter movements and to 0 out voltage
 
+        // Feedforward
+        public static boolean useFeedforward = false; //TODO finish tuning this
+        public static double lowerJointKS = 0;
+        public static double lowerJointKG = 0;
+        public static double lowerJointKV = 0;
+        public static double lowerJointKA = 0; // shouldn't need
+        public static double upperJointKS = 0;
+        public static double upperJointKG = 0;
+        public static double upperJointKV = 0;
+        public static double upperJointKA = 0; // shouldn't need
+
         // Limits
         public static double maxAngleLowerJoint = Math.toRadians(330);
         public static double minAngleLowerJoint = Math.toRadians(5);

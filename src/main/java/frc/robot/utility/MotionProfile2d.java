@@ -90,5 +90,12 @@ public class MotionProfile2d {
         return MovingTarget;
     }
 
+    /**
+     * Returns the target velocity of the current target position
+     */
+    public Vector2d getTargetVelocity() {
+        return CurrentTargetVelocity;
+    }
+
 
 }
