@@ -1,19 +1,22 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import static frc.robot.utility.Functions.round;
+
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import frc.robot.Settings.AlgaeArmSettings;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AlgaeArmConstants;
 import frc.robot.Constants.MotorConstants;
-import frc.robot.utility.MotionProfile2d;
-import frc.robot.utility.Vector2d;
+import frc.robot.Settings;
+import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.utility.ElapsedTime;
 import frc.robot.utility.Functions;
+import frc.robot.utility.MotionProfile2d;
+import frc.robot.utility.Vector2d;
 
 
 public class AlgaeArmSystem extends SubsystemBase {
@@ -32,15 +35,15 @@ public class AlgaeArmSystem extends SubsystemBase {
         |              ,,(((/(@  (&               &,,,#                                         |
         |             ,,, (((@   ,,             #,,,@                                           |
         |             ,,, @@C    ,,%          .@,,@/                                            |
-        |            @,,&((@(    %%@         @,,,%               From     Lower J     Robot     | +
-        |            ,,,(/@@     %%@       &#O,@                           180*         90      0
-        |           @,,     ,.....,&....   &/&(/{}]           Upper J:  270*+ 90*   180 + 0     | -
-        |          @#,,@    ,....  &...@    ,,, ¯¯                          0*         270      |
-        |          .&((L_   ,....  @..%/#@&@@@@                                            
-        |         /(((*(((\ &##%(  @(##&@@@#@@@(%%                         180          90               
-        |       /((/@%&%@((\@,.(*  @(.(,&&%&%#%%%##@          Lower J:  270 + 90    180 + 0                    
-        |  [¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯C)¯C)¯|¯¯¯]                   0          270      
-       +|  [__________________________________/__/__1___]     * - only the case when the lower J is 180
+        |            @,,&((@(    %%@         @,,,%                     Angles      Robot        | +
+        |            ,,,(/@@     %%@       &#O,@                                     90         0
+        |           @,,     ,.....,&....   &/&(/{}]                  Upper J:    180 + 0        | -
+        |          @#,,@    ,....  &...@    ,,, ¯¯                                  -90         |
+        |          .&((L_   ,....  @..%/#@&@@@@                                                    
+        |         /(((*(((\ &##%(  @(##&@@@#@@@(%%                                   90               
+        |       /((/@%&%@((\@,.(*  @(.(,&&%&%#%%%##@                 Lower J:    180 + 0                    
+        |  [¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯C)¯C)¯|¯¯¯]                           -90      
+       +|  [__________________________________/__/__1___]       
         0       '¯'               0              '¯'          
        -| - - - - - - - - - - - - ^ + + + + + + + + + + + + + + + + + + + + + + 
         |                     From Robot
@@ -68,14 +71,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double lowerGearRatio = (1.0/5.0 * 1.0/5.0) * 2*Math.PI; // motor angle * gear ratio = actual angle
     private double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
 
-
-    private ArmFeedforward L1Feedforward, L2Feedforward;
-   
-
-
     /**
-     * The 0 angles for each joint is when the arm is perfectly inside the segment it is attached to 
-     * Basically the arm is pointing straight up on the robot when the lower joint and upper joint are pi (180 degrees).
+     * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
      */
     public AlgaeArmSystem(double firstSegmentStartAngle, double secondSegmentStartAngle) {
 
@@ -92,9 +89,6 @@ public class AlgaeArmSystem extends SubsystemBase {
         L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio + L1Offset; //I think this should get the currect position but will need testing
         L2Encoder = () -> topPivot.getPosition().getValueAsDouble() * upperGearRatio + L2Offset - L1Encoder.getAsDouble() + firstSegmentStartAngle; // this last part is because I didn't understand the mechanism exactly which really complicated kinematics 
 
-        L1Feedforward = new ArmFeedforward(AlgaeArmSettings.lowerJointKS, AlgaeArmSettings.lowerJointKG, AlgaeArmSettings.lowerJointKV);
-        L2Feedforward = new ArmFeedforward(AlgaeArmSettings.upperJointKS, AlgaeArmSettings.upperJointKG, AlgaeArmSettings.upperJointKV);
-
         CurrentL1Angle = L1Encoder.getAsDouble();
         CurrentL2Angle = L2Encoder.getAsDouble();
 
@@ -105,6 +99,44 @@ public class AlgaeArmSystem extends SubsystemBase {
         motionProfile = new MotionProfile2d(Target, AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
 
         frameTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+
+        // Place initial tuning values into smartdashboard
+
+        if (Settings.tuningTelemetryEnabled) {
+            SmartDashboard.putNumber("Tune Algae Lower kP", AlgaeArmSettings.LowerJointPID.getP());
+            SmartDashboard.putNumber("Tune Algae Lower kI", AlgaeArmSettings.LowerJointPID.getI());
+            SmartDashboard.putNumber("Tune Algae Lower kD", AlgaeArmSettings.LowerJointPID.getD());
+            SmartDashboard.putNumber("Tune Algae Upper kP", AlgaeArmSettings.UpperJointPID.getP());
+            SmartDashboard.putNumber("Tune Algae Upper kI", AlgaeArmSettings.UpperJointPID.getI());
+            SmartDashboard.putNumber("Tune Algae Upper kD", AlgaeArmSettings.UpperJointPID.getD());
+
+            SmartDashboard.putNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
+            SmartDashboard.putNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
+            SmartDashboard.putNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
+
+            SmartDashboard.putNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
+            SmartDashboard.putNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
+
+            SmartDashboard.putNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
+
+            SmartDashboard.putBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
+            SmartDashboard.putNumber("Tune Algae lower joint kS", AlgaeArmSettings.L1Feedforward.getKs());
+            SmartDashboard.putNumber("Tune Algae lower joint kG", AlgaeArmSettings.L1Feedforward.getKg());
+            SmartDashboard.putNumber("Tune Algae lower joint kV", AlgaeArmSettings.L1Feedforward.getKv());
+            SmartDashboard.putNumber("Tune Algae upper joint kS", AlgaeArmSettings.L2Feedforward.getKs());
+            SmartDashboard.putNumber("Tune Algae upper joint kG", AlgaeArmSettings.L2Feedforward.getKg());
+            SmartDashboard.putNumber("Tune Algae upper joint kV", AlgaeArmSettings.L2Feedforward.getKv());
+
+            SmartDashboard.putNumber("Tune Algae Limit maxAngleLowerJoint", AlgaeArmSettings.maxAngleLowerJoint);
+            SmartDashboard.putNumber("Tune Algae Limit minAngleLowerJoint", AlgaeArmSettings.minAngleLowerJoint);
+            SmartDashboard.putNumber("Tune Algae Limit maxAngleUpperJointFromLower", AlgaeArmSettings.maxAngleUpperJointFromLower);
+            SmartDashboard.putNumber("Tune Algae Limit minAngleUpperJointFromLower", AlgaeArmSettings.minAngleUpperJointFromLower);
+            SmartDashboard.putNumber("Tune Algae Limit maxDistanceInX", AlgaeArmSettings.maxDistanceInX);
+            SmartDashboard.putNumber("Tune Algae Limit maxDistanceOutX", AlgaeArmSettings.maxDistanceOutX);
+            SmartDashboard.putNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
+
+            SmartDashboard.putNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+        }
     }
 
 
@@ -116,42 +148,49 @@ public class AlgaeArmSystem extends SubsystemBase {
         frameTimer.reset();
 
         //update settings
-        AlgaeArmSettings.LowerJointPID.setP(SmartDashboard.getNumber("Tune Algae Lower kP", 0));
-        AlgaeArmSettings.LowerJointPID.setI(SmartDashboard.getNumber("Tune Algae Lower kI", 0));
-        AlgaeArmSettings.LowerJointPID.setD(SmartDashboard.getNumber("Tune Algae Lower kD", 0));
-        AlgaeArmSettings.UpperJointPID.setP(SmartDashboard.getNumber("Tune Algae Upper kP", 0));
-        AlgaeArmSettings.UpperJointPID.setI(SmartDashboard.getNumber("Tune Algae Upper kI", 0));
-        AlgaeArmSettings.UpperJointPID.setD(SmartDashboard.getNumber("Tune Algae Upper kD", 0));
+        if (Settings.tuningTelemetryEnabled) {
+            AlgaeArmSettings.LowerJointPID.setP(SmartDashboard.getNumber("Tune Algae Lower kP", AlgaeArmSettings.LowerJointPID.getP()));
+            AlgaeArmSettings.LowerJointPID.setI(SmartDashboard.getNumber("Tune Algae Lower kI", AlgaeArmSettings.LowerJointPID.getI()));
+            AlgaeArmSettings.LowerJointPID.setD(SmartDashboard.getNumber("Tune Algae Lower kD", AlgaeArmSettings.LowerJointPID.getD()));
+            AlgaeArmSettings.UpperJointPID.setP(SmartDashboard.getNumber("Tune Algae Upper kP", AlgaeArmSettings.UpperJointPID.getP()));
+            AlgaeArmSettings.UpperJointPID.setI(SmartDashboard.getNumber("Tune Algae Upper kI", AlgaeArmSettings.UpperJointPID.getI()));
+            AlgaeArmSettings.UpperJointPID.setD(SmartDashboard.getNumber("Tune Algae Upper kD", AlgaeArmSettings.UpperJointPID.getD()));
 
-        AlgaeArmSettings.maxAcceleration = SmartDashboard.getNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
-        AlgaeArmSettings.maxDeceleration = SmartDashboard.getNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
-        AlgaeArmSettings.maxSpeed = SmartDashboard.getNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
-        motionProfile.updateSettings(AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
+            AlgaeArmSettings.maxAcceleration = SmartDashboard.getNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
+            AlgaeArmSettings.maxDeceleration = SmartDashboard.getNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
+            AlgaeArmSettings.maxSpeed = SmartDashboard.getNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
+            motionProfile.updateSettings(AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
 
-        AlgaeArmSettings.AlgaeArmLowerJointStartAngle = SmartDashboard.getNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
-        AlgaeArmSettings.AlgaeArmUpperJointStartAngle = SmartDashboard.getNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
+            AlgaeArmSettings.AlgaeArmLowerJointStartAngle = SmartDashboard.getNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
+            AlgaeArmSettings.AlgaeArmUpperJointStartAngle = SmartDashboard.getNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
 
-        AlgaeArmSettings.voltageTolerance = SmartDashboard.getNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
+            AlgaeArmSettings.voltageTolerance = SmartDashboard.getNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
 
-        AlgaeArmSettings.useFeedforward = SmartDashboard.getBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
-        AlgaeArmSettings.lowerJointKS = SmartDashboard.getNumber("Tune Algae lower joint kS", AlgaeArmSettings.lowerJointKS);
-        AlgaeArmSettings.lowerJointKG = SmartDashboard.getNumber("Tune Algae lower joint kG", AlgaeArmSettings.lowerJointKG);
-        AlgaeArmSettings.lowerJointKV = SmartDashboard.getNumber("Tune Algae lower joint kV", AlgaeArmSettings.lowerJointKV);
-        AlgaeArmSettings.lowerJointKA = SmartDashboard.getNumber("Tune Algae lower joint kA", AlgaeArmSettings.lowerJointKA);
-        AlgaeArmSettings.upperJointKS = SmartDashboard.getNumber("Tune Algae upper joint kS", AlgaeArmSettings.upperJointKS);
-        AlgaeArmSettings.upperJointKG = SmartDashboard.getNumber("Tune Algae upper joint kG", AlgaeArmSettings.upperJointKG);
-        AlgaeArmSettings.upperJointKV = SmartDashboard.getNumber("Tune Algae upper joint kV", AlgaeArmSettings.upperJointKV);
-        AlgaeArmSettings.upperJointKA = SmartDashboard.getNumber("Tune Algae upper joint kA", AlgaeArmSettings.upperJointKA);
+            AlgaeArmSettings.useFeedforward = SmartDashboard.getBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
+            double lowerJointKS = SmartDashboard.getNumber("Tune Algae lower joint kS", AlgaeArmSettings.L1Feedforward.getKs());
+            double lowerJointKG = SmartDashboard.getNumber("Tune Algae lower joint kG", AlgaeArmSettings.L1Feedforward.getKg());
+            double lowerJointKV = SmartDashboard.getNumber("Tune Algae lower joint kV", AlgaeArmSettings.L1Feedforward.getKv());
+            double upperJointKS = SmartDashboard.getNumber("Tune Algae upper joint kS", AlgaeArmSettings.L2Feedforward.getKs());
+            double upperJointKG = SmartDashboard.getNumber("Tune Algae upper joint kG", AlgaeArmSettings.L2Feedforward.getKg());
+            double upperJointKV = SmartDashboard.getNumber("Tune Algae upper joint kV", AlgaeArmSettings.L2Feedforward.getKv());
+            if (!(lowerJointKS == AlgaeArmSettings.L1Feedforward.getKs() && lowerJointKG == AlgaeArmSettings.L1Feedforward.getKg() && lowerJointKV == AlgaeArmSettings.L1Feedforward.getKv())) {
+                AlgaeArmSettings.L1Feedforward = new ArmFeedforward(lowerJointKS, lowerJointKG, lowerJointKV);
+            }
+            if (!(upperJointKS == AlgaeArmSettings.L2Feedforward.getKs() && upperJointKG == AlgaeArmSettings.L2Feedforward.getKg() && upperJointKV == AlgaeArmSettings.L2Feedforward.getKv())) {
+                AlgaeArmSettings.L2Feedforward = new ArmFeedforward(upperJointKS, upperJointKG, upperJointKV);
+            }
+            
+            AlgaeArmSettings.maxAngleLowerJoint = SmartDashboard.getNumber("Tune Algae Limit maxAngleLowerJoint", AlgaeArmSettings.maxAngleLowerJoint);
+            AlgaeArmSettings.minAngleLowerJoint = SmartDashboard.getNumber("Tune Algae Limit minAngleLowerJoint", AlgaeArmSettings.minAngleLowerJoint);
+            AlgaeArmSettings.maxAngleUpperJointFromLower = SmartDashboard.getNumber("Tune Algae Limit maxAngleUpperJointFromLower", AlgaeArmSettings.maxAngleUpperJointFromLower);
+            AlgaeArmSettings.minAngleUpperJointFromLower = SmartDashboard.getNumber("Tune Algae Limit minAngleUpperJointFromLower", AlgaeArmSettings.minAngleUpperJointFromLower);
+            AlgaeArmSettings.maxDistanceInX = SmartDashboard.getNumber("Tune Algae Limit maxDistanceInX", AlgaeArmSettings.maxDistanceInX);
+            AlgaeArmSettings.maxDistanceOutX = SmartDashboard.getNumber("Tune Algae Limit maxDistanceOutX", AlgaeArmSettings.maxDistanceOutX);
+            AlgaeArmSettings.maxDistanceDownY = SmartDashboard.getNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
 
-        AlgaeArmSettings.maxAngleLowerJoint = SmartDashboard.getNumber("Tune Algae Limit maxAngleLowerJoint", AlgaeArmSettings.maxAngleLowerJoint);
-        AlgaeArmSettings.minAngleLowerJoint = SmartDashboard.getNumber("Tune Algae Limit minAngleLowerJoint", AlgaeArmSettings.minAngleLowerJoint);
-        AlgaeArmSettings.maxAngleUpperJoint = SmartDashboard.getNumber("Tune Algae Limit maxAngleUpperJoint", AlgaeArmSettings.maxAngleUpperJoint);
-        AlgaeArmSettings.minAngleUpperJoint = SmartDashboard.getNumber("Tune Algae Limit minAngleUpperJoint", AlgaeArmSettings.minAngleUpperJoint);
-        AlgaeArmSettings.maxDistanceInX = SmartDashboard.getNumber("Tune Algae Limit maxDistanceInX", AlgaeArmSettings.maxDistanceInX);
-        AlgaeArmSettings.maxDistanceOutX = SmartDashboard.getNumber("Tune Algae Limit maxDistanceOutX", AlgaeArmSettings.maxDistanceOutX);
-        AlgaeArmSettings.maxDistanceDownY = SmartDashboard.getNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
-
-        AlgaeArmSettings.maxJoystickMovementSpeed = SmartDashboard.getNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+            AlgaeArmSettings.maxJoystickMovementSpeed = SmartDashboard.getNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+        }
+        
 
         // Update encoders
         CurrentL1Angle = L1Encoder.getAsDouble();
@@ -170,7 +209,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         double TargetL1Angle = getTargetLowerAngle();
         double TargetL2Angle = getTargetUpperAngle();
         TargetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, TargetL1Angle);
-        TargetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, TargetL2Angle);
+        TargetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + TargetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + TargetL1Angle, TargetL2Angle);
         setTargetAngles(TargetL1Angle, TargetL2Angle);
 
         // Get moving target from motion profile
@@ -187,22 +226,14 @@ public class AlgaeArmSystem extends SubsystemBase {
         MovingTarget.x = Functions.minMaxValue(AlgaeArmSettings.maxDistanceInX, AlgaeArmSettings.maxDistanceOutX, MovingTarget.x);
         if (MovingTarget.y < AlgaeArmSettings.maxDistanceDownY) MovingTarget.y = AlgaeArmSettings.maxDistanceDownY;
 
-        /*
-        double TargetL1Angle = getMovingTargetLowerAngle();
-        double TargetL2Angle = getMovingTargetUpperAngle();
-        TargetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, TargetL1Angle);
-        TargetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, TargetL2Angle);
-        setMovingTargetAngles(TargetL1Angle, TargetL2Angle);
-        */
-
         // Use inverse kinematics to get new target joint angles and pass that to the PIDs
         double L1MotorPower = AlgaeArmSettings.LowerJointPID.calculate(CurrentL1Angle, getTargetLowerAngle());
         double L2MotorPower = AlgaeArmSettings.UpperJointPID.calculate(CurrentL2Angle, getTargetUpperAngle());
 
         // Add the gravity/acceleration compensation power
         if (AlgaeArmSettings.useFeedforward) {
-            L1MotorPower += L1Feedforward.calculate(getMovingTargetLowerAngleFromRobot(), getLowerJointAngVel());
-            L2MotorPower += L2Feedforward.calculate(getMovingTargetUpperAngleFromRobot(), getUpperJointAngVel());
+            L1MotorPower += AlgaeArmSettings.L1Feedforward.calculate(getMovingTargetLowerAngle(), getLowerJointTargetAngVel());
+            L2MotorPower += AlgaeArmSettings.L2Feedforward.calculate(getMovingTargetUpperAngle(), getUpperJointTargetAngVel());
         }
         
         // Give power to motors
@@ -213,27 +244,21 @@ public class AlgaeArmSystem extends SubsystemBase {
         double UpdateHz = -1;
         if (frameTime > 0) UpdateHz = 1.0 / frameTime;
         SmartDashboard.putNumber("Algae Arm framerate (hz)", UpdateHz);
-        SmartDashboard.putString("Algae Arm Target", "x:" + Target.x + " y:" + Target.y);
-        SmartDashboard.putString("Algae Arm Moving Target", "x:" + MovingTarget.x + " y:" + MovingTarget.y);
+        SmartDashboard.putString("Algae Arm Target", "x:" + round(Target.x, 2) + " y:" + round(Target.y, 2));
+        SmartDashboard.putString("Algae Arm Moving Target", "x:" + round(MovingTarget.x, 2) + " y:" + round(MovingTarget.y, 2));
         Vector2d CurrentPointForTelemetry = getCurrentPoint();
-        SmartDashboard.putString("Algae Arm Current Position", "x:" + CurrentPointForTelemetry.x + " y:" + CurrentPointForTelemetry.y);
+        SmartDashboard.putString("Algae Arm Current Position", "x:" + round(CurrentPointForTelemetry.x, 2) + " y:" + round(CurrentPointForTelemetry.y, 2));
         Vector2d PositionErrorForTelemetry = MovingTarget.minus(CurrentPointForTelemetry);
-        SmartDashboard.putString("Algae Arm Target Error", "x:" + PositionErrorForTelemetry.x + " y:" + PositionErrorForTelemetry.y);
+        SmartDashboard.putString("Algae Arm Target Error", "x:" + round(PositionErrorForTelemetry.x, 3) + " y:" + round(PositionErrorForTelemetry.y, 3));
         SmartDashboard.putNumber("Algae Lower Angle", Math.toDegrees(CurrentL1Angle));
         SmartDashboard.putNumber("Algae Upper Angle", Math.toDegrees(CurrentL2Angle));
-
-        SmartDashboard.putNumber("Testing: Algae Upper Encoder Angle", topPivot.getPosition().getValueAsDouble());
-
-        SmartDashboard.putNumber("Algae Lower Angle Centric", Math.toDegrees(getCurrentLowerAngleFromRobot()));
-        SmartDashboard.putNumber("Algae Upper Angle Centric", Math.toDegrees(getCurrentUpperAngleFromRobot()));
         SmartDashboard.putBoolean("Algae RightBias", RightBias);
-        SmartDashboard.putNumber("Algae Lower Joint AngVel", getLowerJointAngVel());
-        SmartDashboard.putNumber("Algae Upper Joint AngVel", getUpperJointAngVel());
+        SmartDashboard.putNumber("Algae Lower Joint Target AngVel", getLowerJointTargetAngVel());
+        SmartDashboard.putNumber("Algae Upper Joint Target AngVel", getUpperJointTargetAngVel());
         SmartDashboard.putNumber("Algae Lower Motor Power", L1MotorPower);
         SmartDashboard.putNumber("Algae Upper Motor Power", L2MotorPower);
         SmartDashboard.putNumber("Algae Lower Motor Current", bottomPivot.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Upper Motor Current", topPivot.getStatorCurrent().getValueAsDouble());
-
     }
 
 
@@ -241,13 +266,14 @@ public class AlgaeArmSystem extends SubsystemBase {
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
     }
+
+
     private double toVoltage(double power){
         if(Math.abs(power)<AlgaeArmSettings.voltageTolerance)
         return 0;
         
-        power = (AlgaeArmConstants.maxVoltage-AlgaeArmConstants.minVoltage)*power + (power/Math.abs(power))*AlgaeArmConstants.minVoltage; //adds the min value + the range between the max and min voltage to get a number between the min and max proporitnal to the power
+        power = (AlgaeArmConstants.maxVoltage-AlgaeArmConstants.minVoltage)*power + Math.signum(power)*AlgaeArmConstants.minVoltage; //adds the min value + the range between the max and min voltage to get a number between the min and max proportional to the power
         return power;
-        
     }
 
 
@@ -259,18 +285,15 @@ public class AlgaeArmSystem extends SubsystemBase {
      */
     public Vector2d getCurrentPoint() {
         return new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.cos(Math.PI - CurrentL2Angle - (CurrentL1Angle - Math.PI/2)),
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.PI + CurrentL2Angle + (CurrentL1Angle - Math.PI/2))
+            AlgaeArmConstants.LowerSegmentLength * Math.cos(CurrentL1Angle) + AlgaeArmConstants.UpperSegmentLength * Math.cos(CurrentL2Angle),
+            AlgaeArmConstants.LowerSegmentLength * Math.sin(CurrentL1Angle) + AlgaeArmConstants.UpperSegmentLength * Math.sin(CurrentL2Angle)
         );
     }
     /**
      * Gets the current height and distance forward of the end of the arm based from the center of the robot frame and the floor
      */
     public Vector2d getCurrentPointFromRobot() {
-        return new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.cos(Math.PI - CurrentL2Angle - (CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.LowerJointForward,
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.PI + CurrentL2Angle + (CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.LowerJointHeight
-        );
+        return getCurrentPoint().plus(new Vector2d(AlgaeArmConstants.LowerJointForward, AlgaeArmConstants.LowerJointHeight));
     }
 
     /**
@@ -303,8 +326,8 @@ public class AlgaeArmSystem extends SubsystemBase {
      */
     public Vector2d getCurrentMiddlePoint() {
         return new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((CurrentL1Angle - Math.PI/2)),
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((CurrentL1Angle - Math.PI/2))
+            AlgaeArmConstants.LowerSegmentLength * Math.cos(CurrentL1Angle),
+            AlgaeArmConstants.LowerSegmentLength * Math.sin(CurrentL1Angle)
         );
     }
     /**
@@ -312,15 +335,15 @@ public class AlgaeArmSystem extends SubsystemBase {
      */
     public Vector2d getCurrentMiddlePointFromRobot() {
         return new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.LowerJointForward,
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((CurrentL1Angle - Math.PI/2)) + AlgaeArmConstants.LowerJointHeight
+            AlgaeArmConstants.LowerSegmentLength * Math.cos(CurrentL1Angle) + AlgaeArmConstants.LowerJointForward,
+            AlgaeArmConstants.LowerSegmentLength * Math.sin(CurrentL1Angle) + AlgaeArmConstants.LowerJointHeight
         );
     }
     /**
      * Gets the target height and distance forward of the second joint of the arm based from the lower joint.
      */
     public Vector2d getTargetMiddlePoint() {
-        double L1Angle = getTargetLowerAngle() - Math.PI/2;
+        double L1Angle = getTargetLowerAngle();
         return new Vector2d(
             AlgaeArmConstants.LowerSegmentLength * Math.cos(L1Angle),
             AlgaeArmConstants.LowerSegmentLength * Math.sin(L1Angle)
@@ -330,7 +353,7 @@ public class AlgaeArmSystem extends SubsystemBase {
      * Gets the target height and distance forward of the second joint of the arm based from the center of the robot frame and the floor
      */
     public Vector2d getTargetMiddlePointFromRobot() {
-        double L1Angle = getTargetLowerAngle() - Math.PI/2;
+        double L1Angle = getTargetLowerAngle();
         return new Vector2d(
             AlgaeArmConstants.LowerSegmentLength * Math.cos(L1Angle) + AlgaeArmConstants.LowerJointForward,
             AlgaeArmConstants.LowerSegmentLength * Math.sin(L1Angle) + AlgaeArmConstants.LowerJointHeight
@@ -340,7 +363,7 @@ public class AlgaeArmSystem extends SubsystemBase {
      * Gets the target height and distance forward of the second joint of the arm based from the lower joint.
      */
     public Vector2d getMovingTargetMiddlePoint() {
-        double L1Angle = getMovingTargetLowerAngle() - Math.PI/2;
+        double L1Angle = getMovingTargetLowerAngle();
         return new Vector2d(
             AlgaeArmConstants.LowerSegmentLength * Math.cos(L1Angle),
             AlgaeArmConstants.LowerSegmentLength * Math.sin(L1Angle)
@@ -350,7 +373,7 @@ public class AlgaeArmSystem extends SubsystemBase {
      * Gets the target height and distance forward of the second joint of the arm based from the center of the robot frame and the floor
      */
     public Vector2d getMovingTargetMiddlePointFromRobot() {
-        double L1Angle = getMovingTargetLowerAngle() - Math.PI/2;
+        double L1Angle = getMovingTargetLowerAngle();
         return new Vector2d(
             AlgaeArmConstants.LowerSegmentLength * Math.cos(L1Angle) + AlgaeArmConstants.LowerJointForward,
             AlgaeArmConstants.LowerSegmentLength * Math.sin(L1Angle) + AlgaeArmConstants.LowerJointHeight
@@ -358,32 +381,63 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
     public double getCurrentLowerAngle() { return Functions.normalizeAngle(CurrentL1Angle); }
-    public double getCurrentLowerAngleFromRobot() { return Functions.normalizeAngle(CurrentL1Angle - Math.PI/2); }
 
     public double getCurrentUpperAngle() { return Functions.normalizeAngle(CurrentL2Angle); }
-    public double getCurrentUpperAngleFromRobot() { return Functions.normalizeAngle((Math.PI - CurrentL2Angle) - getCurrentLowerAngleFromRobot()); }
 
-    public double getTargetLowerAngle() { return Functions.normalizeAngle(Target.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(getTargetUpperAngle())) / Target.mag()) + Math.PI/2); }
-    public double getTargetLowerAngleFromRobot() { return Functions.normalizeAngle(getTargetLowerAngle() - Math.PI/2); }
+    public double getTargetLowerAngle() { 
+        double midJointAngle = getTargetMidJointAngle();
+        if (AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.acos(AlgaeArmConstants.LowerSegmentLength / AlgaeArmConstants.UpperSegmentLength)) <= Target.mag()) {
+            return Functions.normalizeAngle(Target.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(midJointAngle)) / Target.mag()));
+        } else return Functions.normalizeAngle(Target.angle() + Math.PI - Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(midJointAngle)) / Target.mag()));
+    }
 
-    public double getMovingTargetLowerAngle() { return Functions.normalizeAngle(MovingTarget.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(getMovingTargetUpperAngle())) / MovingTarget.mag()) + Math.PI/2); }
-    public double getMovingTargetLowerAngleFromRobot() { return Functions.normalizeAngle(getMovingTargetLowerAngle() - Math.PI/2); }
+    public double getMovingTargetLowerAngle() { 
+        double midJointAngle = getMovingTargetMidJointAngle();
+        if (AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.acos(AlgaeArmConstants.LowerSegmentLength / AlgaeArmConstants.UpperSegmentLength)) <= MovingTarget.mag()) {
+            return Functions.normalizeAngle(MovingTarget.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(midJointAngle)) / MovingTarget.mag()));
+        } else return Functions.normalizeAngle(MovingTarget.angle() + Math.PI - Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(midJointAngle)) / MovingTarget.mag()));
+    }
 
     public double getTargetUpperAngle() {
+        if (RightBias) return Functions.normalizeAngle(getTargetLowerAngle() - getTargetMidJointAngle() + Math.PI);
+        else return Functions.normalizeAngle(getTargetLowerAngle() + getTargetMidJointAngle() - Math.PI);
+    }
+
+    public double getMovingTargetUpperAngle() {
+        if (RightBias) return Functions.normalizeAngle(getMovingTargetLowerAngle() - getMovingTargetMidJointAngle() + Math.PI);
+        else return Functions.normalizeAngle(getMovingTargetLowerAngle() + getMovingTargetMidJointAngle() - Math.PI);
+    }
+
+    /**
+     * Finds the current angle between the two arm segments
+     */
+    public double getCurrentMidJointAngle() {
+        Vector2d CurrentEndPoint = getCurrentPoint();
+        double result = Math.acos(((CurrentEndPoint.x * CurrentEndPoint.x + CurrentEndPoint.y * CurrentEndPoint.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
+            / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
+        if (RightBias) return Functions.normalizeAngle(-1 * result);
+        else return Functions.normalizeAngle(result);
+    }
+
+    /**
+     * Finds the angle between the two arm segments when it is at its final target
+     */
+    public double getTargetMidJointAngle() {
         double result = Math.acos(((Target.x * Target.x + Target.y * Target.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
             / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
         if (RightBias) return Functions.normalizeAngle(-1 * result);
         else return Functions.normalizeAngle(result);
     }
-    public double getTargetUpperAngleFromRobot() { return Functions.normalizeAngle((Math.PI - getTargetUpperAngle()) - getTargetLowerAngleFromRobot()); }
 
-    public double getMovingTargetUpperAngle() {
+    /**
+     * Finds the angle between the two arm segments when it is at its moving target
+     */
+    public double getMovingTargetMidJointAngle() {
         double result = Math.acos(((MovingTarget.x * MovingTarget.x + MovingTarget.y * MovingTarget.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
             / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
         if (RightBias) return Functions.normalizeAngle(-1 * result);
         else return Functions.normalizeAngle(result);
     }
-    public double getMovingTargetUpperAngleFromRobot() { return Functions.normalizeAngle((Math.PI - getMovingTargetUpperAngle()) - getMovingTargetLowerAngleFromRobot()); }
 
 
 
@@ -396,62 +450,22 @@ public class AlgaeArmSystem extends SubsystemBase {
     public void setTarget(Vector2d target) {
         Target = target;
     }
-    /**
-     * an angle of pi is straight up 
-     * Keeps the upper target angle at the same angle relative to the robot
-     */
-    public void setTargetLowerAngle(double lowerTargetAngle) { setTargetAnglesFromRobot(lowerTargetAngle - Math.PI/2, getTargetUpperAngleFromRobot()); }
-    /**
-     * an angle of pi is straight relative to the lower arm 
-     * Keeps the lower target angle at the same angle relative to the robot
-     */
+
+    public void setTargetLowerAngle(double lowerTargetAngle) { setTargetAngles(lowerTargetAngle, getTargetUpperAngle()); }
+
     public void setTargetUpperAngle(double upperTargetAngle) { setTargetAngles(getTargetLowerAngle(), upperTargetAngle); }
+    
     /**
      * Sets the target height and distance forward of the end of the arm based from the center of the robot frame and the floor
      */
     public void setTargetPointFromRobot(Vector2d target) { Target = target.minus(new Vector2d(AlgaeArmConstants.LowerJointForward, AlgaeArmConstants.LowerJointHeight)); }
-    /**
-     * pi/2 is straight up
-     * Keeps the upper target angle at the same angle relative to the robot
-     */
-    public void setTargetLowerAngleFromRobot(double lowerTargetAngle) { setTargetAnglesFromRobot(lowerTargetAngle, getTargetUpperAngleFromRobot()); }
-    /**
-     * pi is straight up for lower arm, pi is straight out relative to lower arm angle for the upper segment
-     */
-    public void setTargetUpperAngleFromRobot(double upperTargetAngle) { setTargetAnglesFromRobot(getCurrentLowerAngleFromRobot(), upperTargetAngle); }
-    /**
-     * An angle of pi is straight up for lower Arm while an angle of pi is straight relative to the lower arm for the upper segment
-     */
+
     public void setTargetAngles(double lowerTargetAngle, double upperTargetAngle) {
         lowerTargetAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, lowerTargetAngle);
-        upperTargetAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, upperTargetAngle);
+        upperTargetAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + lowerTargetAngle, AlgaeArmSettings.maxAngleUpperJointFromLower + lowerTargetAngle, upperTargetAngle);
         Target = new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((lowerTargetAngle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.cos(Math.PI - upperTargetAngle - (lowerTargetAngle - Math.PI/2)),
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((lowerTargetAngle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.PI + upperTargetAngle + (lowerTargetAngle - Math.PI/2))
-        );
-    }
-    /**
-     * An angle of pi/2 is straight up for both segments
-     */
-    public void setTargetAnglesFromRobot(double lowerTargetAngle, double upperTargetAngle) {
-        double FromRobotLowerAngle = Functions.normalizeAngle(lowerTargetAngle + Math.PI/2);
-        double FromRobotUpperAngle = Functions.normalizeAngle((Math.PI + upperTargetAngle) - FromRobotLowerAngle + Math.PI/2);
-        FromRobotLowerAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, FromRobotLowerAngle);
-        FromRobotUpperAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, FromRobotUpperAngle);
-        Target = new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((FromRobotLowerAngle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.cos(Math.PI - FromRobotUpperAngle - (FromRobotLowerAngle - Math.PI/2)),
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((FromRobotLowerAngle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.PI + FromRobotUpperAngle + (FromRobotLowerAngle - Math.PI/2))
-        );
-    }
-    /**
-     * An angle of pi is straight up for lower Arm while an angle of pi is straight relative to the lower arm for the upper segment
-     */
-    public void setMovingTargetAngles(double lowerTargetAngle, double upperTargetAngle) {
-        lowerTargetAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, lowerTargetAngle);
-        upperTargetAngle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, upperTargetAngle);
-        MovingTarget = new Vector2d(
-            AlgaeArmConstants.LowerSegmentLength * Math.cos((lowerTargetAngle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.cos(Math.PI - upperTargetAngle - (lowerTargetAngle - Math.PI/2)),
-            AlgaeArmConstants.LowerSegmentLength * Math.sin((lowerTargetAngle - Math.PI/2)) + AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.PI + upperTargetAngle + (lowerTargetAngle - Math.PI/2))
+            AlgaeArmConstants.LowerSegmentLength * Math.cos(lowerTargetAngle) + AlgaeArmConstants.UpperSegmentLength * Math.cos(upperTargetAngle),
+            AlgaeArmConstants.LowerSegmentLength * Math.sin(lowerTargetAngle) + AlgaeArmConstants.UpperSegmentLength * Math.sin(upperTargetAngle)
         );
     }
 
@@ -488,8 +502,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
 
-    // These methods were utter torture and pain and suffering
-    public double getLowerJointAngVel() { 
+    // These methods were utter torture and pain and suffering // TODO: Fix these with new functions
+    public double getLowerJointTargetAngVel() { 
         Vector2d firstPoint = motionProfile.getCurrentTarget();
         Vector2d secondPoint = firstPoint.plus(motionProfile.getTargetVelocity());
 
@@ -497,32 +511,53 @@ public class AlgaeArmSystem extends SubsystemBase {
         double UpperSecondAngle = 0;
         double result = Math.acos(((firstPoint.x * firstPoint.x + firstPoint.y * firstPoint.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
             / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
-        if (RightBias) UpperFirstAngle =  Functions.normalizeAngle(-1 * result);
+        if (RightBias) UpperFirstAngle = Functions.normalizeAngle(-1 * result);
         else UpperFirstAngle = Functions.normalizeAngle(result);
         double result2 = Math.acos(((secondPoint.x * secondPoint.x + secondPoint.y * secondPoint.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
             / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
-        if (RightBias) UpperSecondAngle =  Functions.normalizeAngle(-1 * result2);
+        if (RightBias) UpperSecondAngle = Functions.normalizeAngle(-1 * result2);
         else UpperSecondAngle = Functions.normalizeAngle(result2);
 
-        double firstAngle = Functions.normalizeAngle(firstPoint.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(UpperFirstAngle)) / firstPoint.mag()) + Math.PI/2);
-        double secondAngle = Functions.normalizeAngle(secondPoint.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(UpperSecondAngle)) / secondPoint.mag()) + Math.PI/2);
+        double firstAngle = Functions.normalizeAngle(firstPoint.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(UpperFirstAngle)) / firstPoint.mag()));
+        double secondAngle = Functions.normalizeAngle(secondPoint.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(UpperSecondAngle)) / secondPoint.mag()));
 
         return secondAngle - firstAngle;
     }
-    public double getUpperJointAngVel() {
-        Vector2d firstPoint = motionProfile.getCurrentTarget();
-        Vector2d secondPoint = firstPoint.plus(motionProfile.getTargetVelocity());
-        double firstAngle = 0;
-        double secondAngle = 0;
+    public double getUpperJointTargetAngVel() { // this is stupid
+        Vector2d firstPoint = motionProfile.getCurrentTarget(); // get motion profile target
+        Vector2d secondPoint = firstPoint.plus(motionProfile.getTargetVelocity()); // get a second point from adding the first point to the motion profile velocity
+
+        // calculate the needed angle between each arm segment for each of the points
+        double firstMidAngle = 0; 
+        double secondMidAngle = 0;
         double result = Math.acos(((firstPoint.x * firstPoint.x + firstPoint.y * firstPoint.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
             / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
-        if (RightBias) firstAngle =  Functions.normalizeAngle(-1 * result);
-        else firstAngle = Functions.normalizeAngle(result);
+        if (RightBias) firstMidAngle = Functions.normalizeAngle(-1 * result);
+        else firstMidAngle = Functions.normalizeAngle(result);
         double result2 = Math.acos(((secondPoint.x * secondPoint.x + secondPoint.y * secondPoint.y) - AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.LowerSegmentLength - AlgaeArmConstants.UpperSegmentLength * AlgaeArmConstants.UpperSegmentLength) 
             / (-2 * AlgaeArmConstants.LowerSegmentLength * AlgaeArmConstants.UpperSegmentLength));
-        if (RightBias) secondAngle =  Functions.normalizeAngle(-1 * result2);
-        else secondAngle = Functions.normalizeAngle(result2);
+        if (RightBias) secondMidAngle = Functions.normalizeAngle(-1 * result2);
+        else secondMidAngle = Functions.normalizeAngle(result2);
 
+        // calculate the needed lower joint angle for each of the points
+        double firstLowerAngle = 0;
+        double secondLowerAngle = 0;
+        if (AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.acos(AlgaeArmConstants.LowerSegmentLength / AlgaeArmConstants.UpperSegmentLength)) <= firstPoint.mag()) {
+            firstLowerAngle = Functions.normalizeAngle(firstPoint.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(firstMidAngle)) / firstPoint.mag()));
+        } else firstLowerAngle = Functions.normalizeAngle(firstPoint.angle() + Math.PI - Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(firstMidAngle)) / firstPoint.mag()));
+        if (AlgaeArmConstants.UpperSegmentLength * Math.sin(Math.acos(AlgaeArmConstants.LowerSegmentLength / AlgaeArmConstants.UpperSegmentLength)) <= secondPoint.mag()) {
+            secondLowerAngle = Functions.normalizeAngle(secondPoint.angle() + Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(secondMidAngle)) / secondPoint.mag()));
+        } else secondLowerAngle = Functions.normalizeAngle(secondPoint.angle() + Math.PI - Math.asin((AlgaeArmConstants.UpperSegmentLength * Math.sin(secondMidAngle)) / secondPoint.mag()));
+
+        // then by using both the needed angle between each arm segment and the needed lower joint angle, calculate the needed angle of the second joint for each of the points
+        double firstAngle = 0;
+        double secondAngle = 0;
+        if (RightBias) firstAngle = Functions.normalizeAngle(firstLowerAngle - firstMidAngle + Math.PI);
+        else firstAngle = Functions.normalizeAngle(firstLowerAngle + firstMidAngle - Math.PI);
+        if (RightBias) secondAngle = Functions.normalizeAngle(secondLowerAngle - secondMidAngle + Math.PI);
+        else secondAngle = Functions.normalizeAngle(secondLowerAngle + secondMidAngle - Math.PI);
+
+        // and then finally find the difference between those angles from each point
         return secondAngle - firstAngle;
     }
 

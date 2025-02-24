@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import frc.robot.Constants.AlgaeArmConstants;
 
@@ -8,6 +9,9 @@ import frc.robot.Constants.AlgaeArmConstants;
  * often so that they are easier to find than scrolling through a massive constants class
  */
 public class Settings {
+
+    public static boolean tuningTelemetryEnabled = true;
+
     public static class CoralSystemSettings {
         public static double kS = 0.0;
         public static double kG = 0.0;
@@ -22,8 +26,8 @@ public class Settings {
 
     public static class AlgaeArmSettings {
 
-        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(184.4); // 180
-        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(345.5); // -5
+        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(94.4); // 180 
+        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(345.5 - 94.4); // -5
 
         // For motion profile
         public static double maxAcceleration = 0; // in/s^2
@@ -36,20 +40,14 @@ public class Settings {
 
         // Feedforward
         public static boolean useFeedforward = false; //TODO finish tuning this
-        public static double lowerJointKS = 0;
-        public static double lowerJointKG = 0;
-        public static double lowerJointKV = 0;
-        public static double lowerJointKA = 0; // shouldn't need
-        public static double upperJointKS = 0;
-        public static double upperJointKG = 0;
-        public static double upperJointKV = 0;
-        public static double upperJointKA = 0; // shouldn't need
+        public static ArmFeedforward L1Feedforward = new ArmFeedforward(0, 0, 0);
+        public static ArmFeedforward L2Feedforward = new ArmFeedforward(0, 0, 0);
 
         // Limits
-        public static double maxAngleLowerJoint = Math.toRadians(330);
-        public static double minAngleLowerJoint = Math.toRadians(5);
-        public static double maxAngleUpperJoint = Math.toRadians(190);
-        public static double minAngleUpperJoint = Math.toRadians(50);
+        public static double maxAngleLowerJoint = Math.toRadians(120);
+        public static double minAngleLowerJoint = Math.toRadians(-5);
+        public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
+        public static double minAngleUpperJointFromLower = Math.toRadians(-170);
         public static double maxDistanceInX = -8; // prevents hitting the hanging mechanism
         public static double maxDistanceOutX = 19.5; // expansion limit
         public static double maxDistanceDownY = -AlgaeArmConstants.LowerJointHeight + 2; // prevents hitting the floor

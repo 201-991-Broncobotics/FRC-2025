@@ -25,14 +25,30 @@ public class Functions {
      * @param wrapAngle Should be 2pi unless you are doing a swerve module
      */
     public static double angleDifference(double currentAngle, double targetAngle, double wrapAngle) {
-        return angleDifferenceDeg(Math.toDegrees(currentAngle), Math.toDegrees(targetAngle), (int) Math.round(Math.toDegrees(wrapAngle)));
+        return Math.toRadians(angleDifferenceDeg(Math.toDegrees(currentAngle), Math.toDegrees(targetAngle), (int) Math.round(Math.toDegrees(wrapAngle))));
+    }
+    /**
+     * Finds the equivalent angle between -180 and 180
+     * 
+     * @param angle in degrees
+     */
+    public static double normalizeAngleDeg(double angle) {
+        return angleDifferenceDeg(0, angle, 360);
+    }
+    /**
+     * Finds the equivalent angle between -pi and pi
+     * 
+     * @param angle in radians
+     */
+    public static double normalizeAngle(double angle) {
+        return angleDifference(0, angle, 2*Math.PI);
     }
     /**
      * Finds the equivalent angle between 0 and 360
      * 
      * @param angle in degrees
      */
-    public static double normalizeAngleDeg(double angle) {
+    public static double normalizeAngleDegPositive(double angle) {
         return angleDifferenceDeg(-180, angle, 360) + 180;
     }
     /**
@@ -40,7 +56,7 @@ public class Functions {
      * 
      * @param angle in radians
      */
-    public static double normalizeAngle(double angle) {
+    public static double normalizeAnglePositive(double angle) {
         return angleDifference(-2*Math.PI, angle, 2*Math.PI) + 2*Math.PI;
     }
     /**

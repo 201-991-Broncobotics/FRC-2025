@@ -45,40 +45,45 @@ public class MotionProfile2d {
         double timeSince = runTime.time();
         runTime.reset();
 
-
         Vector2d distanceLeft = MovingTarget.minus(Target);
 
-        if (maxAcceleration > 0 || maxDeceleration < 0) { // Acceleration limiting
-            double OptimalSlowdownSpeed;
+        if (!(distanceLeft.mag() == 0) && !(maxAcceleration > 0 || maxDeceleration < 0 || maxSpeed > 0)) {
+            if (maxAcceleration > 0 || maxDeceleration < 0) { // Acceleration limiting
 
+                // finds the maximum speed possible to get to the target without decelerating faster than maxDeceleration
+                double OptimalSlowdownSpeed;
+                if (maxDeceleration < 0) {
+                    // finds the maximum speed possible to get to the target without decelerating faster than max
+                    OptimalSlowdownSpeed = Math.sqrt(-2 * maxDeceleration * Target.distFrom(MovingTarget)); 
 
-            if (!(distanceLeft.mag() == 0)) {
-                if (maxDeceleration < 0) OptimalSlowdownSpeed = Math.sqrt(-2 * maxDeceleration * Target.distFrom(MovingTarget)); // finds the maximum speed possible to get to the target without decelerating faster than max
-                else OptimalSlowdownSpeed = maxSpeed;
-                if (OptimalSlowdownSpeed > maxSpeed) OptimalSlowdownSpeed = maxSpeed;
+                    if (maxAcceleration > 0) { // accelerates until it is at max speed or is past the optimal speed
+                        CurrentTargetVelocity = CurrentTargetVelocity.plus((new Vector2d()).withMag(maxAcceleration).withAngle(distanceLeft.angle())).times(timeSince);
+                    } else CurrentTargetVelocity.setMag(OptimalSlowdownSpeed);
+                    if (CurrentTargetVelocity.mag() > OptimalSlowdownSpeed) CurrentTargetVelocity.setMag(OptimalSlowdownSpeed);
+                    
+                    // accelerates unless it is at max speed
+                } else CurrentTargetVelocity = CurrentTargetVelocity.plus((new Vector2d()).withMag(maxAcceleration).withAngle(distanceLeft.angle())).times(timeSince);   
 
-
-                if (maxAcceleration > 0) { // accelerates until is at max speed or is at optimal speed
-                    CurrentTargetVelocity = CurrentTargetVelocity.plus((new Vector2d()).withMag(maxAcceleration).withAngle(distanceLeft.angle()));
-                } else CurrentTargetVelocity.setMag(OptimalSlowdownSpeed);
-                if (CurrentTargetVelocity.mag() > OptimalSlowdownSpeed) CurrentTargetVelocity.setMag(OptimalSlowdownSpeed);
-
+                if (CurrentTargetVelocity.mag() > maxSpeed && !(maxSpeed == 0)) CurrentTargetVelocity.setMag(maxSpeed);
+                
+                // move the movingTargetPosition at maxSpeed towards the set targetPosition until the targetPosition is reached
+            } else { 
+                CurrentTargetVelocity = (new Vector2d()).withMag(maxSpeed).withAngle(distanceLeft.angle());
             }
-        } else { // move the movingTargetPosition at maxSpeed towards the set targetPosition until the targetPosition is reached
-            CurrentTargetVelocity = (new Vector2d()).withMag(maxSpeed).withAngle(distanceLeft.angle());
-        }
+        
+            Vector2d newMovingTarget = MovingTarget.plus(CurrentTargetVelocity.times(timeSince)); // move moving target by current velocity
 
-        Vector2d newMovingTarget = MovingTarget.plus(CurrentTargetVelocity.times(timeSince)); // move moving target by current velocity
+            // Sorry to hurt your brain with math but this finds if the new moving
+            // target has travelled into the other half of the coord grid that the target is on based on the previous moving target.
+            // Though I probably could have just figured out whether the angle to the target has changed by more than 90 degrees
+            boolean overshotTarget;
+            if (MovingTarget.y - Target.y == 0) overshotTarget = newMovingTarget.x - Target.x < 0;
+            else overshotTarget = (((-1 * (MovingTarget.x - Target.x)) / (MovingTarget.y - Target.y)) * (newMovingTarget.x - Target.x) + Target.y - newMovingTarget.y) * (Math.signum(Target.y - MovingTarget.y)) < 0;
 
-        // Sorry to hurt your brain with math but this finds if the new moving
-        // target has travelled into the other half of the coord grid that the target is on based on the previous moving target.
-        // Though I probably could have just figured out whether the angle to the target has changed by more than 90 degrees
-        boolean overshotTarget;
-        if (MovingTarget.y - Target.y == 0) overshotTarget = newMovingTarget.x - Target.x < 0;
-        else overshotTarget = (((-1 * (MovingTarget.x - Target.x)) / (MovingTarget.y - Target.y)) * (newMovingTarget.x - Target.x) + Target.y - newMovingTarget.y) * (Math.signum(Target.y - MovingTarget.y)) < 0;
-
-        if (overshotTarget) MovingTarget = Target; // set to final target if overshot
-        else MovingTarget = newMovingTarget;
+            if (overshotTarget) MovingTarget = Target; // set to final target if overshot
+            else MovingTarget = newMovingTarget;
+            
+        } else MovingTarget = Target;
 
         return MovingTarget;
     }
