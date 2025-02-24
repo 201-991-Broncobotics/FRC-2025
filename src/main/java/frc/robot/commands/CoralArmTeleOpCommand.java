@@ -31,13 +31,13 @@ public class CoralArmTeleOpCommand extends Command {
         if(direction<0&currentPosition>0); currentPosition=+1;
         switch (currentPosition) {
             case 0:
-                coralArmSystem.setPos(0);
+                coralArmSystem.setElevatorPos(0);
                 break;
             case 1:
-                coralArmSystem.setPos(20);
+                coralArmSystem.setElevatorPos(20);
                 break;
             case 2:
-                coralArmSystem.setPos(60);
+                coralArmSystem.setElevatorPos(60);
                 break;
              default:
                 break;
