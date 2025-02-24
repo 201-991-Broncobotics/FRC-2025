@@ -40,9 +40,9 @@ public class CoralArmSystem extends SubsystemBase {
     public void periodic() {
         
         //Update position
-        if (rightElevator.getPosition().getValueAsDouble()<0) 
+        if (leftElevator.getPosition().getValueAsDouble()<0) 
             CurrentElevatorHeight =0;
-        else CurrentElevatorHeight = rightElevator.getPosition().getValueAsDouble(); //add offset later
+        else CurrentElevatorHeight = leftElevator.getPosition().getValueAsDouble(); //add offset later
 
         //Calculate voltage
         ElevatorError=TargetElevatorHeight-CurrentElevatorHeight;
@@ -58,6 +58,7 @@ public class CoralArmSystem extends SubsystemBase {
         
         //Smart Dashboard updates
         SmartDashboard.putNumber("Right Elevator", CurrentElevatorHeight);
+        SmartDashboard.putNumber("Right ElevatorAct ", rightElevator.getPosition().getValueAsDouble());
     }
     public boolean atPosition(){
         if(Math.abs(ElevatorError)<Settings.CoralSystemSettings.elevatorTolerance)

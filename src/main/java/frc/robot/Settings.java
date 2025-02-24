@@ -22,8 +22,8 @@ public class Settings {
 
     public static class AlgaeArmSettings {
 
-        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(180);
-        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(5);
+        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(184.4); // 180
+        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(345.5); // -5
 
         // For motion profile
         public static double maxAcceleration = 0; // in/s^2

@@ -65,6 +65,10 @@ public class AlgaeArmSystem extends SubsystemBase {
     private TalonFX bottomPivot;
     private TalonFX topPivot;
 
+    private double lowerGearRatio = (1.0/5.0 * 1.0/5.0) * 2*Math.PI; // motor angle * gear ratio = actual angle
+    private double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
+
+
     private ArmFeedforward L1Feedforward, L2Feedforward;
    
 
@@ -74,8 +78,6 @@ public class AlgaeArmSystem extends SubsystemBase {
      * Basically the arm is pointing straight up on the robot when the lower joint and upper joint are pi (180 degrees).
      */
     public AlgaeArmSystem(double firstSegmentStartAngle, double secondSegmentStartAngle) {
-        L1Offset = firstSegmentStartAngle;
-        L2Offset = secondSegmentStartAngle;
 
         if (Functions.normalizeAngle(secondSegmentStartAngle) > Math.PI) RightBias = true;
         else RightBias = false;
@@ -83,9 +85,12 @@ public class AlgaeArmSystem extends SubsystemBase {
         // initialize motors
         bottomPivot = new TalonFX(MotorConstants.alageBottomPivotID);
         topPivot = new TalonFX(MotorConstants.alageTopPivotID);
-        // initialize PIDs
-        L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() + L1Offset; //I think this should get the currect position but will need testing
-        L2Encoder = () -> topPivot.getPosition().getValueAsDouble() + L2Offset; 
+
+        L1Offset = firstSegmentStartAngle - bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio;
+        L2Offset = secondSegmentStartAngle - topPivot.getPosition().getValueAsDouble() * upperGearRatio;
+        // initialize encoder suppliers
+        L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio + L1Offset; //I think this should get the currect position but will need testing
+        L2Encoder = () -> topPivot.getPosition().getValueAsDouble() * upperGearRatio + L2Offset - L1Encoder.getAsDouble() + firstSegmentStartAngle; // this last part is because I didn't understand the mechanism exactly which really complicated kinematics 
 
         L1Feedforward = new ArmFeedforward(AlgaeArmSettings.lowerJointKS, AlgaeArmSettings.lowerJointKG, AlgaeArmSettings.lowerJointKV);
         L2Feedforward = new ArmFeedforward(AlgaeArmSettings.upperJointKS, AlgaeArmSettings.upperJointKG, AlgaeArmSettings.upperJointKV);
@@ -205,7 +210,9 @@ public class AlgaeArmSystem extends SubsystemBase {
         topPivot.setVoltage(toVoltage(L2MotorPower));
 
         // Telemetry
-        SmartDashboard.putNumber("Algae Arm frame time (ms)", frameTime);
+        double UpdateHz = -1;
+        if (frameTime > 0) UpdateHz = 1.0 / frameTime;
+        SmartDashboard.putNumber("Algae Arm framerate (hz)", UpdateHz);
         SmartDashboard.putString("Algae Arm Target", "x:" + Target.x + " y:" + Target.y);
         SmartDashboard.putString("Algae Arm Moving Target", "x:" + MovingTarget.x + " y:" + MovingTarget.y);
         Vector2d CurrentPointForTelemetry = getCurrentPoint();
@@ -214,13 +221,18 @@ public class AlgaeArmSystem extends SubsystemBase {
         SmartDashboard.putString("Algae Arm Target Error", "x:" + PositionErrorForTelemetry.x + " y:" + PositionErrorForTelemetry.y);
         SmartDashboard.putNumber("Algae Lower Angle", Math.toDegrees(CurrentL1Angle));
         SmartDashboard.putNumber("Algae Upper Angle", Math.toDegrees(CurrentL2Angle));
+
+        SmartDashboard.putNumber("Testing: Algae Upper Encoder Angle", topPivot.getPosition().getValueAsDouble());
+
         SmartDashboard.putNumber("Algae Lower Angle Centric", Math.toDegrees(getCurrentLowerAngleFromRobot()));
         SmartDashboard.putNumber("Algae Upper Angle Centric", Math.toDegrees(getCurrentUpperAngleFromRobot()));
         SmartDashboard.putBoolean("Algae RightBias", RightBias);
         SmartDashboard.putNumber("Algae Lower Joint AngVel", getLowerJointAngVel());
         SmartDashboard.putNumber("Algae Upper Joint AngVel", getUpperJointAngVel());
-        SmartDashboard.putNumber("Algae Lower Joint Power", L1MotorPower);
-        SmartDashboard.putNumber("Algae Upper Joint Power", L2MotorPower);
+        SmartDashboard.putNumber("Algae Lower Motor Power", L1MotorPower);
+        SmartDashboard.putNumber("Algae Upper Motor Power", L2MotorPower);
+        SmartDashboard.putNumber("Algae Lower Motor Current", bottomPivot.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Algae Upper Motor Current", topPivot.getStatorCurrent().getValueAsDouble());
 
     }
 
@@ -512,6 +524,15 @@ public class AlgaeArmSystem extends SubsystemBase {
         else secondAngle = Functions.normalizeAngle(result2);
 
         return secondAngle - firstAngle;
+    }
+
+
+    public void realignAlgaeArm() {
+        L1Offset = AlgaeArmSettings.AlgaeArmLowerJointStartAngle - bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio;
+        L2Offset = AlgaeArmSettings.AlgaeArmUpperJointStartAngle - topPivot.getPosition().getValueAsDouble() * upperGearRatio;
+        // initialize encoder suppliers
+        L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio + L1Offset; //I think this should get the currect position but will need testing
+        L2Encoder = () -> topPivot.getPosition().getValueAsDouble() * upperGearRatio + L2Offset - L1Encoder.getAsDouble() + AlgaeArmSettings.AlgaeArmLowerJointStartAngle; // this last part is because I didn't understand the mechanism exactly which really complicated kinematics 
     }
 
 }
