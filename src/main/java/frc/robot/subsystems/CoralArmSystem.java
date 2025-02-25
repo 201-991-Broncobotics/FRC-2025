@@ -12,6 +12,7 @@ import frc.robot.Settings;
 import frc.robot.Constants.MotorConstants;
 
 public class CoralArmSystem extends SubsystemBase {
+    private int ElevatorStage;
 
     private double TargetElevatorHeight, TargetArmAngle, ElevatorError;
     private double CurrentElevatorHeight, CurrentArmAngle, ArmError;
@@ -113,6 +114,12 @@ public class CoralArmSystem extends SubsystemBase {
         if(Math.abs(ElevatorError)<Settings.CoralSystemSettings.elevatorTolerance)
         return true;
         return false;
+    }
+    public int getStage(){
+        return ElevatorStage;
+    }
+    public void setStage(int newStage){
+        ElevatorStage = newStage;
     }
 
     @Override
