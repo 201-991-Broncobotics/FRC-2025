@@ -14,14 +14,16 @@ package frc.robot;
  */
 public final class Constants {
     public static class MotorConstants{
-        public static final int alageBottomPivotID =8;
-        public static final int alageTopPivotID = 9;
+        public static final int algaeBottomPivotID =8;
+        public static final int algaeTopPivotID = 9;
 
         public static final int coralLeftElevatorID =10;
         public static final int coralRightElevatorID = 11;
         public static final int coralPivotID =12;
 
         public static final int climbingMotorID =13;
+
+        public static final int algaeRollerID = 0;
     }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;
