@@ -50,12 +50,12 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
     public final ClimbingSystem climbingSystem = new ClimbingSystem(operatorJoystick.rightBumper(), operatorJoystick.rightTrigger());
-    /*public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
+    public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
 
     private final CoralArmTeleOpCommand runElevatorUp = new CoralArmTeleOpCommand(coralArmSystem, 1);
-    private final CoralArmTeleOpCommand runElevatorDown = new CoralArmTeleOpCommand(coralArmSystem, -1);*/
+    private final CoralArmTeleOpCommand runElevatorDown = new CoralArmTeleOpCommand(coralArmSystem, -1);
     DoubleSupplier sup = () -> operatorJoystick.getRightY();
-    public final CoralArmSystem coralArmSystem = new CoralArmSystem(sup);
+    //public final CoralArmSystem coralArmSystem = new CoralArmSystem(sup);
 
     public RobotContainer() {
         configureBindings();
@@ -87,8 +87,9 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        //operatorJoystick.leftBumper().onTrue(runElevatorUp);
-        //operatorJoystick.leftTrigger().onTrue(runElevatorDown);
+
+        operatorJoystick.leftBumper().onTrue(runElevatorUp);
+        operatorJoystick.leftTrigger().onTrue(runElevatorDown);
 
         operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
 
