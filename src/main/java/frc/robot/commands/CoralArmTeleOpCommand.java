@@ -10,12 +10,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class CoralArmTeleOpCommand extends Command {
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     private final CoralArmSystem coralArmSystem;
-    private static int currentPosition =0;
-    private int direction;
+    public static int currentPosition=0;
+    private final int direction;
 
 
     public CoralArmTeleOpCommand(CoralArmSystem subsystem, int direction) {
-        direction =1;
+        this.direction =direction;
         coralArmSystem=subsystem;
         addRequirements(subsystem);
     }
@@ -27,17 +27,17 @@ public class CoralArmTeleOpCommand extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        if(direction>0&currentPosition<3); currentPosition=+1;
-        if(direction<0&currentPosition>0); currentPosition=+1;
+        if(this.direction>0&currentPosition<3); currentPosition+=1;
+        if(this.direction<0&currentPosition>0); currentPosition-=1;
         switch (currentPosition) {
             case 0:
-                coralArmSystem.setPos(0);
+                coralArmSystem.setElevatorPos(0);
                 break;
             case 1:
-                coralArmSystem.setPos(20);
+                coralArmSystem.setElevatorPos(20);
                 break;
             case 2:
-                coralArmSystem.setPos(60);
+                coralArmSystem.setElevatorPos(60);
                 break;
              default:
                 break;
@@ -52,6 +52,6 @@ public class CoralArmTeleOpCommand extends Command {
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
-        return coralArmSystem.atPosition();
+        return true;
     }
 }

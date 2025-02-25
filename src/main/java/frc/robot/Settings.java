@@ -13,9 +13,13 @@ public class Settings {
     public static boolean tuningTelemetryEnabled = true;
 
     public static class CoralSystemSettings {
-        public static double kS = 0.0;
-        public static double kG = 0.0;
-        public static double kV = 0.0;
+        public static double kSE = 0.0;
+        public static double kGE = 0.0;
+        public static double kVE = 0.0;
+
+        public static double kSA = 0.0;
+        public static double kGA = 0.0;
+        public static double kVA = 0.0;
 
         public static double elevatorTolerance =10;
         public static double elevatorSpeedControl =10;

@@ -8,6 +8,25 @@ public class CoralClaw extends SubsystemBase {
 
     private double CurrentRightAngle, CurrentLeftAngle;
 
+    class diffyCoords{
+        diffyCoords(double Roll, double Pitch){
+            roll = Roll;
+            pitch = Pitch;
+        }
+
+        diffyCoords vals(){
+            //calculate for left servo
+            servo1 = roll;
+            //calculate for right servo
+            servo2 = pitch;
+
+            return new diffyCoords(servo1, servo2);
+        }
+
+        public double roll = 0,pitch = 0;
+        public double servo1 = 0, servo2 = 0;
+    }
+
 
     public CoralClaw() {
 
