@@ -7,6 +7,7 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AlgaeArmConstants;
@@ -35,7 +36,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         |              ,,(((/(@  (&               &,,,#                                         |
         |             ,,, (((@   ,,             #,,,@                                           |
         |             ,,, @@C    ,,%          .@,,@/                                            |
-        |            @,,&((@(    %%@         @,,,%                     Angles      Robot        | +
+        |            @,,&((@(    %%@         @,,,%                                Angles        | +
         |            ,,,(/@@     %%@       &#O,@                                     90         0
         |           @,,     ,.....,&....   &/&(/{}]                  Upper J:    180 + 0        | -
         |          @#,,@    ,....  &...@    ,,, ¯¯                                  -90         |
@@ -67,9 +68,12 @@ public class AlgaeArmSystem extends SubsystemBase {
 
     private TalonFX bottomPivot;
     private TalonFX topPivot;
+    private Spark clawRoller;
 
     private double lowerGearRatio = (1.0/5.0 * 1.0/5.0) * 2*Math.PI; // motor angle * gear ratio = actual angle
     private double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
+
+    private double clawRollerPower = 0;
 
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
@@ -80,8 +84,9 @@ public class AlgaeArmSystem extends SubsystemBase {
         else RightBias = false;
 
         // initialize motors
-        bottomPivot = new TalonFX(MotorConstants.alageBottomPivotID);
-        topPivot = new TalonFX(MotorConstants.alageTopPivotID);
+        bottomPivot = new TalonFX(MotorConstants.algaeBottomPivotID);
+        topPivot = new TalonFX(MotorConstants.algaeTopPivotID);
+        clawRoller = new Spark(MotorConstants.algaeRollerID);
 
         L1Offset = firstSegmentStartAngle - bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio;
         L2Offset = secondSegmentStartAngle - topPivot.getPosition().getValueAsDouble() * upperGearRatio;
@@ -239,6 +244,16 @@ public class AlgaeArmSystem extends SubsystemBase {
         // Give power to motors
         bottomPivot.setVoltage(toVoltage(L1MotorPower));
         topPivot.setVoltage(toVoltage(L2MotorPower));
+        clawRoller.set(clawRollerPower);
+
+
+        //benisbestcoder();
+        //public aidansucksatcode(boolean input) { return false; }
+        //parker_is_lowkey_useless();
+        //mael_is_hot();
+        //BRUCE BRUCE BRUCE BRUCE BRUCE BRUCE
+        //I DON'T LIKE VINCENT();
+
 
         // Telemetry
         double UpdateHz = -1;
@@ -259,6 +274,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         SmartDashboard.putNumber("Algae Upper Motor Power", L2MotorPower);
         SmartDashboard.putNumber("Algae Lower Motor Current", bottomPivot.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Upper Motor Current", topPivot.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Algae Claw Roller Power", clawRollerPower);
     }
 
 
@@ -569,5 +585,10 @@ public class AlgaeArmSystem extends SubsystemBase {
         L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio + L1Offset; //I think this should get the currect position but will need testing
         L2Encoder = () -> topPivot.getPosition().getValueAsDouble() * upperGearRatio + L2Offset - L1Encoder.getAsDouble() + AlgaeArmSettings.AlgaeArmLowerJointStartAngle; // this last part is because I didn't understand the mechanism exactly which really complicated kinematics 
     }
+
+
+    public void runClawRoller(double speed) { clawRollerPower = speed; }
+
+    public void stopClawRoller() { clawRollerPower = 0; }
 
 }
