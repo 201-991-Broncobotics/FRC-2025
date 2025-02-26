@@ -87,6 +87,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double clawRollerPower = 0;
     private boolean armStopped = false;
 
+    private boolean continueSpinningRoller = false;
+
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
      */
@@ -121,6 +123,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         motionProfile = new MotionProfile2d(Target, AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
 
         frameTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+        continueSpinningRoller = false;
 
         // Place initial tuning values into smartdashboard
 
