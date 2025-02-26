@@ -40,8 +40,8 @@ public class Settings {
         public static double maxDeceleration = 0; // in/s^2
         public static double maxSpeed = 0; // in/s
 
-        public static PIDController LowerJointPID = new PIDController(0, 0, 0);
-        public static PIDController UpperJointPID = new PIDController(0, 0, 0);
+        public static PIDController LowerJointPID = new PIDController(0, 0, 0); // 3.5, 0, 0
+        public static PIDController UpperJointPID = new PIDController(0, 0, 0); // 0.6, 0, 0
         public static double voltageTolerance =0.05; //tolerance for PID to stop jitter movements and to 0 out voltage
 
         // Feedforward
@@ -63,5 +63,24 @@ public class Settings {
         public static double maxJoystickMovementSpeed = 5; // in/s
         public static double temporaryStaticPower = 0;
 
+    }
+
+    public static class AlgaeRollerSettings {
+        public static double IntakePower = 0.5;
+        public static double HoldPower = 0.25;
+        public static double OuttakePower = -0.5;
+    }
+
+
+    public static class CoralClawSettings {
+        public static double startPitch = 0; // radians
+        public static double startRotation = 0; // radians
+
+        public static double maxPitch = Math.toRadians(90); // radians
+        public static double minPitch = Math.toRadians(-90); // radians
+        public static double wristAngleRange = Math.toRadians(180); // radians
+
+        public static PIDController rightPID = new PIDController(0, 0, 0);
+        public static PIDController leftPID = new PIDController(0, 0, 0);
     }
 }
