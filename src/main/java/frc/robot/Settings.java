@@ -24,7 +24,25 @@ public class Settings {
         public static double elevatorTolerance =2;
         public static double armTolerance =5;
         public static double elevatorSpeedControl =11;
-        
+    }
+
+    public static class CoralClawSettings {
+        //Right Motor PID & Speed
+        public static double RkP = 0.0;
+        public static double RkI = 0.0;
+        public static double RkD = 0.0;
+        public static double Rspeed = 1.0;
+
+        //Left Motor PID & Speed
+        public static double LkP = 0.0;
+        public static double LkI = 0.0;
+        public static double LkD = 0.0;
+        public static double Lspeed = 1.0;
+
+        //Limits - Degrees
+        public static double maxPitch = 90.0;
+        public static double minPitch = -90.0;
+        public static double rollRange = 90.0;
     }
     public static class ClimbingSettings{
         public static double climbingSpeed = 1;
@@ -69,18 +87,5 @@ public class Settings {
         public static double IntakePower = 0.5;
         public static double HoldPower = 0.25;
         public static double OuttakePower = -0.5;
-    }
-
-
-    public static class CoralClawSettings {
-        public static double startPitch = 0; // radians
-        public static double startRotation = 0; // radians
-
-        public static double maxPitch = Math.toRadians(90); // radians
-        public static double minPitch = Math.toRadians(-90); // radians
-        public static double wristAngleRange = Math.toRadians(180); // radians
-
-        public static PIDController rightPID = new PIDController(0, 0, 0);
-        public static PIDController leftPID = new PIDController(0, 0, 0);
     }
 }
