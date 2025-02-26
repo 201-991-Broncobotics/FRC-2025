@@ -231,17 +231,17 @@ public class AlgaeArmSystem extends SubsystemBase {
         Target.x = Functions.minMaxValue(AlgaeArmSettings.maxDistanceInX, AlgaeArmSettings.maxDistanceOutX, Target.x);
         if (Target.y < AlgaeArmSettings.maxDistanceDownY) Target.y = AlgaeArmSettings.maxDistanceDownY;
 
-        
+        /*
         double TargetL1Angle = getTargetLowerAngle();
         double TargetL2Angle = getTargetUpperAngle();
         TargetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, TargetL1Angle);
         TargetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + TargetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + TargetL1Angle, TargetL2Angle);
-        // setTargetAngles(TargetL1Angle, TargetL2Angle);
-        
+        setTargetAngles(TargetL1Angle, TargetL2Angle);
+        */
 
         // Get moving target from motion profile
         motionProfile.setFinalTarget(Target);
-        // MovingTarget = motionProfile.update();
+        MovingTarget = motionProfile.update();
         MovingTarget = Target;
 
         // Make sure motion profile target is within reachable positions and won't clip into things
@@ -266,7 +266,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         
         // Give power to motors
         if (!armStopped) {
-            bottomPivot.setVoltage(toVoltage(L1MotorPower));
+            bottomPivot.setVoltage(toVoltage(L1MotorPower + Math.cos(CurrentL1Angle)*AlgaeArmSettings.temporaryStaticPower));
             topPivot.setVoltage(toVoltage(L2MotorPower));
             clawRoller.set(clawRollerPower);
         } else {

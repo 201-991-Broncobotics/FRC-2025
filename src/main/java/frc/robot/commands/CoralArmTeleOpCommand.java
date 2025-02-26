@@ -2,8 +2,6 @@ package frc.robot.commands;
 
 import frc.robot.subsystems.CoralArmSystem;
 
-import java.util.function.BooleanSupplier;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -27,7 +25,7 @@ public class CoralArmTeleOpCommand extends Command {
     @Override
     public void execute() {
         if(this.direction>0&coralArmSystem.getStage()<3) coralArmSystem.setStage(coralArmSystem.getStage()+1);
-        if(this.direction<0&coralArmSystem.getStage()>0) coralArmSystem.setStage(coralArmSystem.getStage()+1);
+        if(this.direction<0&coralArmSystem.getStage()>0) coralArmSystem.setStage(coralArmSystem.getStage()-1);
         switch (coralArmSystem.getStage()) {
             case 0:
                 coralArmSystem.setElevatorPos(0);
