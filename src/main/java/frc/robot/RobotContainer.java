@@ -92,6 +92,8 @@ public class RobotContainer {
         operatorJoystick.leftTrigger().onTrue(runElevatorDown);
 
         operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
+        operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enabledArm));
+        operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
         // temporary Algae Arm controls
         algaeArmSystem.setDefaultCommand(new AlgaeArmTeleOpCommand(algaeArmSystem, 

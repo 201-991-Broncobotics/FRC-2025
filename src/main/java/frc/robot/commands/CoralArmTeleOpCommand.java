@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class CoralArmTeleOpCommand extends Command {
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     private final CoralArmSystem coralArmSystem;
-    public static int currentPosition=0;
     private final int direction;
 
 
@@ -27,9 +26,9 @@ public class CoralArmTeleOpCommand extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        if(this.direction>0&currentPosition<3); currentPosition+=1;
-        if(this.direction<0&currentPosition>0); currentPosition-=1;
-        switch (currentPosition) {
+        if(this.direction>0&coralArmSystem.getStage()<3) coralArmSystem.setStage(coralArmSystem.getStage()+1);
+        if(this.direction<0&coralArmSystem.getStage()>0) coralArmSystem.setStage(coralArmSystem.getStage()+1);
+        switch (coralArmSystem.getStage()) {
             case 0:
                 coralArmSystem.setElevatorPos(0);
                 break;
@@ -42,7 +41,7 @@ public class CoralArmTeleOpCommand extends Command {
              default:
                 break;
         }
-        SmartDashboard.putNumber("Elevator Stage", currentPosition);
+        SmartDashboard.putNumber("Elevator Stage", coralArmSystem.getStage());
     }
 
     // Called once the command ends or is interrupted.
