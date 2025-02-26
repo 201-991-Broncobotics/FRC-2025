@@ -87,8 +87,6 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double clawRollerPower = 0;
     private boolean armStopped = false;
 
-    private boolean continueSpinningRoller = false;
-
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
      */
@@ -123,7 +121,6 @@ public class AlgaeArmSystem extends SubsystemBase {
         motionProfile = new MotionProfile2d(Target, AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
 
         frameTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
-        continueSpinningRoller = false;
 
         // Place initial tuning values into smartdashboard
 
@@ -231,13 +228,13 @@ public class AlgaeArmSystem extends SubsystemBase {
         Target.x = Functions.minMaxValue(AlgaeArmSettings.maxDistanceInX, AlgaeArmSettings.maxDistanceOutX, Target.x);
         if (Target.y < AlgaeArmSettings.maxDistanceDownY) Target.y = AlgaeArmSettings.maxDistanceDownY;
 
-        /*
+        
         double TargetL1Angle = getTargetLowerAngle();
         double TargetL2Angle = getTargetUpperAngle();
         TargetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, TargetL1Angle);
         TargetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + TargetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + TargetL1Angle, TargetL2Angle);
-        setTargetAngles(TargetL1Angle, TargetL2Angle);
-        */
+        //setTargetAngles(TargetL1Angle, TargetL2Angle);
+        
 
         // Get moving target from motion profile
         motionProfile.setFinalTarget(Target);
