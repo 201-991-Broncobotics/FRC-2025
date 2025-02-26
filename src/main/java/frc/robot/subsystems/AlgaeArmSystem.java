@@ -74,6 +74,7 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
 
     private double clawRollerPower = 0;
+    private boolean armStopped = false;
 
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
@@ -219,7 +220,8 @@ public class AlgaeArmSystem extends SubsystemBase {
 
         // Get moving target from motion profile
         motionProfile.setFinalTarget(Target);
-        MovingTarget = motionProfile.update();
+        // MovingTarget = motionProfile.update();
+        MovingTarget = Target;
 
         // Make sure motion profile target is within reachable positions and won't clip into things
         if (MovingTarget.mag() > AlgaeArmConstants.LowerSegmentLength + AlgaeArmConstants.UpperSegmentLength) {
@@ -242,9 +244,16 @@ public class AlgaeArmSystem extends SubsystemBase {
         }
         
         // Give power to motors
-        bottomPivot.setVoltage(toVoltage(L1MotorPower));
-        topPivot.setVoltage(toVoltage(L2MotorPower));
-        clawRoller.set(clawRollerPower);
+        if (!armStopped) {
+            bottomPivot.setVoltage(toVoltage(L1MotorPower));
+            topPivot.setVoltage(toVoltage(L2MotorPower));
+            clawRoller.set(clawRollerPower);
+        } else {
+            bottomPivot.setVoltage(0);
+            topPivot.setVoltage(0);
+            clawRoller.set(0);
+        }
+        
 
 
         //benisbestcoder();
@@ -288,7 +297,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         if(Math.abs(power)<AlgaeArmSettings.voltageTolerance)
         return 0;
         
-        power = (AlgaeArmConstants.maxVoltage-AlgaeArmConstants.minVoltage)*power + Math.signum(power)*AlgaeArmConstants.minVoltage; //adds the min value + the range between the max and min voltage to get a number between the min and max proportional to the power
+        // power = (AlgaeArmConstants.maxVoltage-AlgaeArmConstants.minVoltage)*power + Math.signum(power)*AlgaeArmConstants.minVoltage; //adds the min value + the range between the max and min voltage to get a number between the min and max proportional to the power
         return power;
     }
 
@@ -497,7 +506,18 @@ public class AlgaeArmSystem extends SubsystemBase {
      * @param y - in/s
      */
     public void setTargetMoveSpeeds(double x, double y) {
-        Target = new Vector2d(MovingTarget.x + x * frameTime, MovingTarget.y + y * frameTime);
+        if (Math.abs(x) < 0.05) x = 0;
+        if (Math.abs(y) < 0.05) y = 0;
+        Target = new Vector2d(Target.x + x * frameTime, Target.y + y * frameTime);
+    }
+
+    public void stopArm() {
+        Target = getCurrentPoint();
+        armStopped = true;
+    }
+
+    public void enabledArm() {
+        armStopped = false;
     }
 
     public boolean isCloseToTarget() {
