@@ -90,15 +90,17 @@ public class RobotContainer {
 
         operatorJoystick.leftBumper().onTrue(runElevatorUp);
         operatorJoystick.leftTrigger().onTrue(runElevatorDown);
+        operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
+        operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
 
         operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
-        operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enabledArm));
+        operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enableArm));
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
         // temporary Algae Arm controls
         algaeArmSystem.setDefaultCommand(new AlgaeArmTeleOpCommand(algaeArmSystem, 
-            () -> -operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed, 
-            () -> -operatorJoystick.getLeftX() * AlgaeArmSettings.maxJoystickMovementSpeed
+            () -> -operatorJoystick.getLeftX() * AlgaeArmSettings.maxJoystickMovementSpeed, 
+            () -> -operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed
         ));
         //Coral Elevator Controls
     }

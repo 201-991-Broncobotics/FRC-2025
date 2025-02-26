@@ -539,7 +539,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         armStopped = true;
     }
 
-    public void enabledArm() {
+    public void enableArm() {
         armStopped = false;
     }
 
