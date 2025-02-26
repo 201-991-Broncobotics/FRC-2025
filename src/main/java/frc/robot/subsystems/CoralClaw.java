@@ -1,4 +1,3 @@
-
 package frc.robot.subsystems;
 
 import static frc.robot.Settings.CoralClawSettings.*;
@@ -9,9 +8,18 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 
 public class CoralClaw extends SubsystemBase {
 
@@ -21,54 +29,45 @@ public class CoralClaw extends SubsystemBase {
 
     double Roll, Pitch;
 
-    private CANSparkMax rmotor, lmotor;
-    private SparkPIDController rpidController, lpidController;
+    private SparkMax rmotor, lmotor;
+    private SparkClosedLoopController rpidController, lpidController;
+    private ClosedLoopConfig rightPIDConfig, leftPIDConfig;
     private RelativeEncoder rencoder,lencoder;
+
+    private SparkMaxConfig motorConfig;
 
     public CoralClaw(double startRoll, double startPitch) {
             Roll = startRoll;
             Pitch = startPitch;
 
             // initialize motor
-            rmotor = new CANSparkMax(rightDiffyID, MotorType.kBrushless);
-            lmotor = new CANSparkMax(leftDiffyID, MotorType.kBrushless);
+            rmotor = new SparkMax(rightDiffyID, MotorType.kBrushless);
+            lmotor = new SparkMax(leftDiffyID, MotorType.kBrushless);
 
-            /**
-             * The restoreFactoryDefaults method can be used to reset the configuration parameters
-             * in the SPARK MAX to their factory default state. If no argument is passed, these
-             * parameters will not persist between power cycles
-             */
-            rmotor.restoreFactoryDefaults();
-            lmotor.restoreFactoryDefaults();
+            motorConfig = new SparkMaxConfig();
+            rmotor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+            lmotor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+            
+            // gets closed loop controllers and applies them which is so much more complicated than it was before
+            rpidController = rmotor.getClosedLoopController();
+            lpidController = lmotor.getClosedLoopController();
+            rightPIDConfig = new ClosedLoopConfig();
+            leftPIDConfig = new ClosedLoopConfig();
 
-            /**
-             * In order to use PID functionality for a controller, a SparkPIDController object
-             * is constructed by calling the getPIDController() method on an existing
-             * CANSparkMax object
-             */
-            rpidController = rmotor.getPIDController();
-            lpidController = lmotor.getPIDController();
+            rightPIDConfig.pidf(RkP, RkI, RkD, RFF);
+            leftPIDConfig.pidf(RkP, RkI, RkD, LFF);
 
             // Encoder object created to display position values - I think it uses ionternal encoder or smth?
-            rencoder = rmotor.getEncoder();
-            lencoder = lmotor.getEncoder();
+            //rencoder = rmotor.getEncoder();
+            //lencoder = lmotor.getEncoder();
 
-            rpidController.setP(RkP);
-            rpidController.setI(RkI);
-            rpidController.setD(RkD);
-            rpidController.setIZone(0); //dunno what this is
-            rpidController.setFF(0);    //dunno what this is either
-            rpidController.setOutputRange(-Rspeed, Rspeed); //i think this is speed, change later to check
-            lpidController.setP(RkP);
-            lpidController.setI(RkI);
-            lpidController.setD(RkD);
-            lpidController.setIZone(0); //dunno what this is
-            lpidController.setFF(0);    //dunno what this is either
-            lpidController.setOutputRange(-Lspeed, Lspeed); //i think this is speed, change later to check
+            //rmotor.
     }
 
     @Override
     public void periodic() {
+        /* 
+
         // This method will be called once per scheduler run
         // read PID coefficients from SmartDashboard
         double rkP = SmartDashboard.getNumber("Right Claw Motor P Gain", 0);
@@ -79,6 +78,7 @@ public class CoralClaw extends SubsystemBase {
         double lkD = SmartDashboard.getNumber("Left Claw Motor D Gain", 0);
         double rSpeed = SmartDashboard.getNumber("Right Claw Motor Speed", 0);
         double lSpeed = SmartDashboard.getNumber("Left Claw Motor Speed", 0);
+
 
         // if PID coefficients on SmartDashboard have changed, write new values to controller
         if((rkP != RkP)) { rpidController.setP(rkP); RkP = rkP; }
@@ -103,8 +103,10 @@ public class CoralClaw extends SubsystemBase {
 
         calculateTargetPos();//get angles for each motor
 
-        rpidController.setReference(rMotorPos/360, CANSparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Moto
-        lpidController.setReference(lMotorPos/360, CANSparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Motor
+        rpidController.setReference(rMotorPos/360, SparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Moto
+        lpidController.setReference(lMotorPos/360, SparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Motor
+
+        */
     }
 
     @Override

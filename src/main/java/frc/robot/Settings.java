@@ -33,11 +33,9 @@ public class Settings {
         public static double RkD = 0.0;
         public static double Rspeed = 1.0;
 
-        //Left Motor PID & Speed
-        public static double LkP = 0.0;
-        public static double LkI = 0.0;
-        public static double LkD = 0.0;
-        public static double Lspeed = 1.0;
+        // feedforward values which one motor needs to be set really high becauswe Cole and Micah suck at designing and building
+        public static double RFF = 0.0;
+        public static double LFF = 0.0;
 
         //Limits - Degrees
         public static double maxPitch = 90.0;
