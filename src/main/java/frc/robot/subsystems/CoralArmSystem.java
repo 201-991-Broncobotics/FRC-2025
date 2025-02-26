@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.lang.annotation.Target;
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -34,15 +35,17 @@ public class CoralArmSystem extends SubsystemBase {
         leftElevator = new TalonFX(MotorConstants.coralLeftElevatorID);
         rightElevator = new TalonFX(MotorConstants.coralRightElevatorID);
         coralPivot = new TalonFX(MotorConstants.coralPivotID);
-        elevatorFeedForward = new ElevatorFeedforward(Settings.CoralSystemSettings.kSE, Settings.CoralSystemSettings.kGE, Settings.CoralSystemSettings.kVE, 0);
-        armFeedforward = new ArmFeedforward(Settings.CoralSystemSettings.kSA, Settings.CoralSystemSettings.kGA, Settings.CoralSystemSettings.kVA, 0);
+        TargetElevatorHeight = 0.0;
+        elevatorFeedForward = new ElevatorFeedforward(Settings.CoralSystemSettings.kSE, Settings.CoralSystemSettings.kGE, Settings.CoralSystemSettings.kVE);
+        armFeedforward = new ArmFeedforward(Settings.CoralSystemSettings.kSA, Settings.CoralSystemSettings.kGA, Settings.CoralSystemSettings.kVA);
 
         testString = s;
 
         //put numbers so we can grab latter brr
-        SmartDashboard.putNumber("Elevator kSE", Settings.CoralSystemSettings.kSE);
-        SmartDashboard.putNumber("Elevator kGE", Settings.CoralSystemSettings.kGE);
-        SmartDashboard.putNumber("Elevator kVE", Settings.CoralSystemSettings.kVE);
+        SmartDashboard.putNumber("Arm kSE", Settings.CoralSystemSettings.kSA);
+        SmartDashboard.putNumber("Arm kGE", Settings.CoralSystemSettings.kGA);
+        SmartDashboard.putNumber("Arm kVE", Settings.CoralSystemSettings.kVA);
+        SmartDashboard.putNumber("TargetAngle", 0);
     }
     public CoralArmSystem(DoubleSupplier eleControl) {
         leftElevator = new TalonFX(MotorConstants.coralLeftElevatorID);
@@ -50,8 +53,8 @@ public class CoralArmSystem extends SubsystemBase {
         coralPivot = new TalonFX(MotorConstants.coralPivotID);
         testEle=eleControl;
 
-        elevatorFeedForward = new ElevatorFeedforward(Settings.CoralSystemSettings.kSE, Settings.CoralSystemSettings.kGE, Settings.CoralSystemSettings.kVE, 0);
-        armFeedforward = new ArmFeedforward(Settings.CoralSystemSettings.kSA, Settings.CoralSystemSettings.kGA, Settings.CoralSystemSettings.kVA, 0);
+        elevatorFeedForward = new ElevatorFeedforward(Settings.CoralSystemSettings.kSE, Settings.CoralSystemSettings.kGE, Settings.CoralSystemSettings.kVE);
+        armFeedforward = new ArmFeedforward(Settings.CoralSystemSettings.kSA, Settings.CoralSystemSettings.kGA, Settings.CoralSystemSettings.kVA);
     }
     public void setElevatorPos(double pos){
         TargetElevatorHeight = pos;
@@ -63,48 +66,63 @@ public class CoralArmSystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        TargetArmAngle= SmartDashboard.getNumber("TargetAngle", CurrentArmAngle);
+        
         if(testEle!=null){
             leftElevator.set(-testEle.getAsDouble());
             rightElevator.set(testEle.getAsDouble());
         }
-        //update arm rotation
-        CurrentArmAngle=coralPivot.getPosition().getValueAsDouble();
+      
         //Update elevator position
         if (leftElevator.getPosition().getValueAsDouble()<0) 
             CurrentElevatorHeight = 0;
         else CurrentElevatorHeight = leftElevator.getPosition().getValueAsDouble(); //add offset later
+        //update arm position 
+        if (-coralPivot.getPosition().getValueAsDouble()<0) 
+            CurrentArmAngle = 0;
+        else CurrentArmAngle = -coralPivot.getPosition().getValueAsDouble()*(1.0/25)*(360);//make a constant latter
 
         //Calculate error
         ElevatorError=TargetElevatorHeight-CurrentElevatorHeight;
+        ArmError = TargetArmAngle-CurrentArmAngle;
+        
         //Move motors
         if(Math.abs(ElevatorError)<Settings.CoralSystemSettings.elevatorTolerance) {
             leftElevator.set(elevatorFeedForward.calculate(0));
             rightElevator.set(-elevatorFeedForward.calculate(0));
         }
         else{
-            leftElevator.set(elevatorFeedForward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
-            rightElevator.set(-elevatorFeedForward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
+            leftElevator.setVoltage(elevatorFeedForward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
+            rightElevator.setVoltage(-elevatorFeedForward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
+        }
+        
+        /*if(Math.abs(ArmError)<10) {
+            coralPivot.set(-armFeedforward.calculate(TargetArmAngle, 0));
+        }
+        else*/
+        {
+            coralPivot.set(-armFeedforward.calculate(Math.toRadians(TargetArmAngle), ArmError/9));
         }
         
         //Smart Dashboard updates
         SmartDashboard.putNumber("Elevator", CurrentElevatorHeight);
         SmartDashboard.putNumber("Arm Angle", CurrentArmAngle);
-        SmartDashboard.putNumber("Target", TargetElevatorHeight);
-        SmartDashboard.putNumber("Power",  elevatorFeedForward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
-        SmartDashboard.putString( "actual vals", ""+elevatorFeedForward.getKs()+" "+elevatorFeedForward.getKg()+" "+elevatorFeedForward.getKv());
+        SmartDashboard.putNumber("Target", TargetArmAngle);
+        SmartDashboard.putNumber("PowertoArm",  -armFeedforward.calculate(TargetArmAngle, ElevatorError/10));
+        SmartDashboard.putString( "actual values arm", ""+armFeedforward.getKs()+" "+armFeedforward.getKg()+" "+armFeedforward.getKv());
        // SmartDashboard.putString("test", testString);//hahahaahahaha I AM DEFINITLY OKAY RIGHT NOW
         SmartDashboard.putNumber("Left ElevatorAct ", leftElevator.getPosition().getValueAsDouble());
 
         //update ff
-        boolean check1 = elevatorFeedForward.getKs()!=SmartDashboard.getNumber("Elevator kSE", Settings.CoralSystemSettings.kSE);
-        boolean check2 = elevatorFeedForward.getKs()!=SmartDashboard.getNumber("Elevator kGE", Settings.CoralSystemSettings.kGE);
-        boolean check3 = elevatorFeedForward.getKs()!=SmartDashboard.getNumber("Elevator kVE", Settings.CoralSystemSettings.kVE);
+        boolean check1 = armFeedforward.getKs()!=SmartDashboard.getNumber("Arm kSE", Settings.CoralSystemSettings.kSE);
+        boolean check2 = armFeedforward.getKg()!=SmartDashboard.getNumber("Arm kGE", Settings.CoralSystemSettings.kGE);
+        boolean check3 = armFeedforward.getKv()!=SmartDashboard.getNumber("Arm kVE", Settings.CoralSystemSettings.kVE);
         if(check1 || check2 || check3){
-            SmartDashboard.putString( "stuff", "a");
-            elevatorFeedForward = new ElevatorFeedforward(
-            SmartDashboard.getNumber("Elevator kSE", Settings.CoralSystemSettings.kSE), 
-            SmartDashboard.getNumber("Elevator kGE", Settings.CoralSystemSettings.kGE), 
-            SmartDashboard.getNumber("Elevator kVE", Settings.CoralSystemSettings.kVE));
+            SmartDashboard.putString( "stuff", "e");
+            armFeedforward = new ArmFeedforward(
+            SmartDashboard.getNumber("Arm kSE", Settings.CoralSystemSettings.kSE), 
+            SmartDashboard.getNumber("Arm kGE", Settings.CoralSystemSettings.kGE), 
+            SmartDashboard.getNumber("Arm kVE", Settings.CoralSystemSettings.kVE));
         }
         
 

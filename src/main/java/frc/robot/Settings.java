@@ -13,16 +13,18 @@ public class Settings {
     public static boolean tuningTelemetryEnabled = true;
 
     public static class CoralSystemSettings {
-        public static double kSE = 0.0;
-        public static double kGE = 0.0;
+        public static double kSE = 0.25;
+        public static double kGE = 0.01;
         public static double kVE = 0.0;
 
         public static double kSA = 0.0;
         public static double kGA = 0.0;
         public static double kVA = 0.0;
 
-        public static double elevatorTolerance =10;
-        public static double elevatorSpeedControl =10;
+        public static double elevatorTolerance =2;
+        public static double armTolerance =5;
+        public static double elevatorSpeedControl =11;
+        
     }
     public static class ClimbingSettings{
         public static double climbingSpeed = 1;
@@ -59,6 +61,7 @@ public class Settings {
         public static double PositionTolerance = 1; // in inches for checking when arm has reached target position
 
         public static double maxJoystickMovementSpeed = 5; // in/s
+        public static double temporaryStaticPower = 0;
 
     }
 }
