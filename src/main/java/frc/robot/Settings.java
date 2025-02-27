@@ -27,11 +27,13 @@ public class Settings {
     }
 
     public static class CoralClawSettings {
+        public static double startRoll = 0;
+        public static double startPitch = 0;
+
         //Right Motor PID & Speed
-        public static double RkP = 0.0;
-        public static double RkI = 0.0;
-        public static double RkD = 0.0;
-        public static double Rspeed = 1.0;
+        public static double kP = 0.0;
+        public static double kI = 0.0;
+        public static double kD = 0.0;
 
         // feedforward values which one motor needs to be set really high becauswe Cole and Micah suck at designing and building
         public static double RFF = 0.0;
