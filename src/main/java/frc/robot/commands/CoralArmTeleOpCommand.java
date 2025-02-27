@@ -26,15 +26,19 @@ public class CoralArmTeleOpCommand extends Command {
     public void execute() {
         if(this.direction>0&coralArmSystem.getStage()<3) coralArmSystem.setStage(coralArmSystem.getStage()+1);
         if(this.direction<0&coralArmSystem.getStage()>0) coralArmSystem.setStage(coralArmSystem.getStage()-1);
-        switch (coralArmSystem.getStage()) {
+      
+        switch (coralArmSystem.getStage()) {//todo make settings
             case 0:
                 coralArmSystem.setElevatorPos(0);
+                coralArmSystem.setArmAngle(0);
                 break;
             case 1:
-                coralArmSystem.setElevatorPos(20);
+                coralArmSystem.setElevatorPos(40);
+                coralArmSystem.setArmAngle(60);
                 break;
             case 2:
-                coralArmSystem.setElevatorPos(60);
+                coralArmSystem.setElevatorPos(100);
+                coralArmSystem.setArmAngle(90);
                 break;
              default:
                 break;

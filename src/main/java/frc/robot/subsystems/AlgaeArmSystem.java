@@ -94,6 +94,8 @@ public class AlgaeArmSystem extends SubsystemBase {
      */
     public AlgaeArmSystem(double firstSegmentStartAngle, double secondSegmentStartAngle) {
 
+        clawRollerConfig = new SparkMaxConfig();
+
         // initialize motors
         bottomPivot = new TalonFX(MotorConstants.algaeBottomPivotID);
         topPivot = new TalonFX(MotorConstants.algaeTopPivotID);

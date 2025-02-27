@@ -24,7 +24,7 @@ public final class Constants {
         public static final int climbingMotorID =13;
 
         // NEOs
-        public static final int algaeRollerID = 0;
+        public static final int algaeRollerID = 24;
         public static final int leftDiffyID = 1;
         public static final int rightDiffyID = 2;
     }
