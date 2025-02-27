@@ -30,6 +30,7 @@ import frc.robot.subsystems.AlgaeArmSystem;
 import frc.robot.subsystems.ClimbingSystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralArmSystem;
+import frc.robot.subsystems.CoralClaw;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -51,6 +52,7 @@ public class RobotContainer {
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
     public final ClimbingSystem climbingSystem = new ClimbingSystem(operatorJoystick.rightBumper(), operatorJoystick.rightTrigger());
     public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
+    public final CoralClaw coralClawSystem = new CoralClaw();
 
     private final CoralArmTeleOpCommand runElevatorUp = new CoralArmTeleOpCommand(coralArmSystem, 1);
     private final CoralArmTeleOpCommand runElevatorDown = new CoralArmTeleOpCommand(coralArmSystem, -1);
@@ -98,10 +100,14 @@ public class RobotContainer {
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
         // temporary Algae Arm controls
-        algaeArmSystem.setDefaultCommand(new AlgaeArmTeleOpCommand(algaeArmSystem, 
+        algaeArmSystem.setControllerInputs( 
             () -> -operatorJoystick.getLeftX() * AlgaeArmSettings.maxJoystickMovementSpeed, 
             () -> -operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed
-        ));
+        );
+
+        coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem)); // might work
+        algaeArmSystem.setDefaultCommand(new RunCommand(algaeArmSystem::updateInTeleOp, algaeArmSystem));
+        
         //Coral Elevator Controls
     }
 
