@@ -26,7 +26,8 @@ public final class Constants {
         // NEOs
         public static final int algaeRollerID = 24;
         public static final int leftDiffyID = 1;
-        public static final int rightDiffyID = 2;
+        public static final int rightDiffyID = 20;
+        public static final int coralRollerID = 23;
     }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;

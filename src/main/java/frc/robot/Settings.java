@@ -43,6 +43,10 @@ public class Settings {
         public static double maxPitch = 90.0;
         public static double minPitch = -90.0;
         public static double rollRange = 90.0;
+
+        public static double intakePower = 1;
+        public static double outtakePower = -1;
+
     }
     public static class ClimbingSettings{
         public static double climbingSpeed = 1;

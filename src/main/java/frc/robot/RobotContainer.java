@@ -99,6 +99,10 @@ public class RobotContainer {
         operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enableArm));
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
+        operatorJoystick.povUp().onTrue(new InstantCommand(coralClawSystem::intakeRoller));
+        operatorJoystick.povDown().onTrue(new InstantCommand(coralClawSystem::stopRoller));
+        operatorJoystick.povRight().onTrue(new InstantCommand(coralClawSystem::outtakeRoller));
+
         // temporary Algae Arm controls
         algaeArmSystem.setControllerInputs( 
             () -> -operatorJoystick.getLeftX() * AlgaeArmSettings.maxJoystickMovementSpeed, 

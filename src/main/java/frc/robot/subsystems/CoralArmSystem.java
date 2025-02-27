@@ -99,13 +99,13 @@ public class CoralArmSystem extends SubsystemBase {
             rightElevator.setVoltage(-elevatorFeedForward.calculate(ElevatorError/Settings.CoralSystemSettings.elevatorSpeedControl));
         }
         
-        if(Math.abs(ArmError)<25) {
-            coralPivot.setVoltage(-armFeedforward.calculate(TargetArmAngle, 1));
+        /*if(Math.abs(ArmError)<10) {
+            coralPivot.setVoltage(-armFeedforward.calculate(TargetArmAngle, 0));
         }
-        else
-        {
-            coralPivot.set(-armFeedforward.calculate(Math.toRadians(TargetArmAngle), ArmError/9));
-        }
+        else*/
+        
+        coralPivot.set(-armFeedforward.calculate(Math.toRadians(TargetArmAngle), ArmError/9));
+        
         
         //Smart Dashboard updates
         SmartDashboard.putNumber("Elevator", CurrentElevatorHeight);

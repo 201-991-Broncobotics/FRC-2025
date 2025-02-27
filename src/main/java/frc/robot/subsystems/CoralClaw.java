@@ -7,6 +7,7 @@ import java.util.function.DoubleSupplier;
 import static frc.robot.Constants.MotorConstants.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Settings;
+import frc.robot.Constants.MotorConstants;
 import frc.robot.Settings.CoralClawSettings;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -26,45 +27,54 @@ public class CoralClaw extends SubsystemBase {
 
     double Roll, Pitch;
 
-    private SparkMax rmotor, lmotor;
+    private double RollerPower;
+
+    private SparkMax rmotor, lmotor, rollerMotor;
     private DoubleSupplier rencoder,lencoder; // gets angle in radians at the joint
     private double gearRatio = 1.0/4.0 * 1.0/5.0 * 18.0/30.0; // gear ratio from motor to each joint side
 
-    private SparkMaxConfig rightMotorConfig, leftMotorConfig;
+    private SparkMaxConfig rightMotorConfig, leftMotorConfig, coralMotorConfig;
 
     public CoralClaw() {
-            Roll = CoralClawSettings.startRoll;
-            Pitch = CoralClawSettings.startPitch;
+        RollerPower = 0;
 
-            // initialize motor
-            rmotor = new SparkMax(rightDiffyID, MotorType.kBrushless);
-            lmotor = new SparkMax(leftDiffyID, MotorType.kBrushless);
+        Roll = CoralClawSettings.startRoll;
+        Pitch = CoralClawSettings.startPitch;
 
-            // create configurations
-            rightMotorConfig = new SparkMaxConfig();
-            leftMotorConfig = new SparkMaxConfig();
+        // initialize motor
+        rmotor = new SparkMax(rightDiffyID, MotorType.kBrushless);
+        lmotor = new SparkMax(leftDiffyID, MotorType.kBrushless);
+        rollerMotor = new SparkMax(MotorConstants.coralRollerID, MotorType.kBrushless);
 
-            // set configurations
-            rightMotorConfig.idleMode(IdleMode.kBrake);
-            leftMotorConfig.idleMode(IdleMode.kBrake);
-            rightMotorConfig.closedLoop.pidf(kP, kI, kD, RFF);
-            leftMotorConfig.closedLoop.pidf(kP, kI, kD, LFF);
+        // create configurations
+        rightMotorConfig = new SparkMaxConfig();
+        leftMotorConfig = new SparkMaxConfig();
+        coralMotorConfig = new SparkMaxConfig();
 
-            // apply configurations initially
-            rmotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-            lmotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-            // Encoder object created to display position values - I think it uses internal encoder or smth?
-            rencoder = () -> gearRatio * rmotor.getEncoder().getPosition() * 2*Math.PI; // converts to radians
-            lencoder = () -> gearRatio * lmotor.getEncoder().getPosition() * 2*Math.PI;
+        // set configurations
+        rightMotorConfig.idleMode(IdleMode.kBrake);
+        leftMotorConfig.idleMode(IdleMode.kBrake);
+        coralMotorConfig.idleMode(IdleMode.kCoast);
+        rightMotorConfig.closedLoop.pidf(kP, kI, kD, RFF);
+        leftMotorConfig.closedLoop.pidf(kP, kI, kD, LFF);
 
-            if (Settings.tuningTelemetryEnabled) {
-                SmartDashboard.putNumber("Tune Coral Claw kP", CoralClawSettings.kP);
-                SmartDashboard.putNumber("Tune Coral Claw kI", CoralClawSettings.kI);
-                SmartDashboard.putNumber("Tune Coral Claw kD", CoralClawSettings.kD);
-                SmartDashboard.putNumber("Tune Coral Claw Right FF", CoralClawSettings.RFF);
-                SmartDashboard.putNumber("Tune Coral Claw Left FF", CoralClawSettings.LFF);
-            }
+        // apply configurations initially
+        rmotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        lmotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        rollerMotor.configure(coralMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        // Encoder object created to display position values - I think it uses internal encoder or smth?
+        rencoder = () -> gearRatio * rmotor.getEncoder().getPosition() * 2*Math.PI; // converts to radians
+        lencoder = () -> gearRatio * lmotor.getEncoder().getPosition() * 2*Math.PI;
+
+        if (Settings.tuningTelemetryEnabled) {
+            SmartDashboard.putNumber("Tune Coral Claw kP", CoralClawSettings.kP);
+            SmartDashboard.putNumber("Tune Coral Claw kI", CoralClawSettings.kI);
+            SmartDashboard.putNumber("Tune Coral Claw kD", CoralClawSettings.kD);
+            SmartDashboard.putNumber("Tune Coral Claw Right FF", CoralClawSettings.RFF);
+            SmartDashboard.putNumber("Tune Coral Claw Left FF", CoralClawSettings.LFF);
+        }
             
     }
 
@@ -73,6 +83,8 @@ public class CoralClaw extends SubsystemBase {
         //Limits
         if(Pitch > maxPitch) {Pitch = maxPitch;} else if (Pitch < minPitch){Pitch = minPitch;}
         if(Roll > rollRange) {Roll = rollRange;} else if (Roll < -rollRange){Roll = -rollRange;}
+
+        rollerMotor.set(RollerPower);
 
         calculateTargetPos();//get angles for each motor
 
@@ -105,6 +117,7 @@ public class CoralClaw extends SubsystemBase {
         SmartDashboard.putNumber("CoralClaw Current Roll", getCurrentRoll());
         SmartDashboard.putNumber("CoralClaw Left Motor Power", getCurrentPitch());
         SmartDashboard.putNumber("CoralClaw Right Motor Power", getCurrentRoll());
+        SmartDashboard.putNumber("CoralClaw Roller Power", RollerPower);
 
     }
 
@@ -129,6 +142,18 @@ public class CoralClaw extends SubsystemBase {
      */
     public double getCurrentRoll() {
         return rencoder.getAsDouble() - lencoder.getAsDouble();
+    }
+
+    public void stopRoller() {
+        RollerPower = 0;
+    }
+
+    public void intakeRoller() {
+        RollerPower = CoralClawSettings.intakePower;
+    }
+
+    public void outtakeRoller() {
+        RollerPower = CoralClawSettings.outtakePower;
     }
 
 }
