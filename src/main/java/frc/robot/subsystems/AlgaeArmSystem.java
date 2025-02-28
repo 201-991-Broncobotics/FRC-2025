@@ -169,8 +169,8 @@ public class AlgaeArmSystem extends SubsystemBase {
             SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
             SmartDashboard.putNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
             SmartDashboard.putNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
-            SmartDashboard.putNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
-            SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
+            //SmartDashboard.putNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
+            //SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
         }
     }
 
@@ -307,12 +307,12 @@ public class AlgaeArmSystem extends SubsystemBase {
             AlgaeRollerSettings.HoldPower = SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
             AlgaeRollerSettings.OuttakePower = SmartDashboard.getNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
             AlgaeRollerSettings.IntakePower = SmartDashboard.getNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
-            AlgaeRollerSettings.maxSmartCurrent = (int) SmartDashboard.getNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
-            AlgaeRollerSettings.secondaryCurrentLimit = (int) SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
+            //AlgaeRollerSettings.maxSmartCurrent = (int) SmartDashboard.getNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
+            //AlgaeRollerSettings.secondaryCurrentLimit = (int) SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
 
-            clawRollerConfig.smartCurrentLimit(AlgaeRollerSettings.maxSmartCurrent)
-                .secondaryCurrentLimit(AlgaeRollerSettings.secondaryCurrentLimit);
-            clawRoller.configureAsync(clawRollerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+            //clawRollerConfig.smartCurrentLimit(AlgaeRollerSettings.maxSmartCurrent)
+                //.secondaryCurrentLimit(AlgaeRollerSettings.secondaryCurrentLimit);
+            //clawRoller.configureAsync(clawRollerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         }
         
 

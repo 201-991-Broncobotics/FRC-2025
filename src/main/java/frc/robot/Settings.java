@@ -19,9 +19,9 @@ public class Settings {
         public static double kGE = 0.00;
         public static double kVE = 0.1;
 
-        public static double kSA = 0.0; 
-        public static double kGA = 0.0;
-        public static double kVA = 0.0;
+        public static double kSA = 0.0; // 0.001
+        public static double kGA = 0.0; // 0.05
+        public static double kVA = 0.0; // 0.05
 
         public static double elevatorTolerance =10;
         public static double armTolerance =5;
@@ -46,20 +46,20 @@ public class Settings {
         public static double minPitch = -90.0;
         public static double rollRange = 180.0;
 
-        public static double intakePower = 1;
-        public static double holdPower = 0.25; // TODO add this
-        public static double outtakePower = -1;
-        public static int intakeSmartStallCurrent = 4;
-        public static int intakeSecondaryCurrent = 5;
+        public static double intakePower = 0.5;
+        public static double holdPower = 0.1; // TODO add this
+        public static double outtakePower = -0.5;
+        //public static int intakeSmartStallCurrent = 4;
+        //public static int intakeSecondaryCurrent = 5;
 
-        public static int diffyMotorSmartStallCurrent = 25;
+        //public static int diffyMotorSmartStallCurrent = 25;
 
         public static double testingPitch = 0;
         public static double testingRoll = 0;
 
     }
     public static class ClimbingSettings{
-        public static double climbingSpeed = 0.1;
+        public static double climbingSpeed = 0.1; // TODO:undo
     }
 
     public static class AlgaeArmSettings {
@@ -98,10 +98,10 @@ public class Settings {
     }
 
     public static class AlgaeRollerSettings {
-        public static double IntakePower = 0.5;
-        public static double HoldPower = 0.25;
+        public static double IntakePower = 0.3;
+        public static double HoldPower = 0.15;
         public static double OuttakePower = -0.5;
-        public static int maxSmartCurrent = 15;
-        public static int secondaryCurrentLimit = 20;
+        //public static int maxSmartCurrent = 15;
+        //public static int secondaryCurrentLimit = 20;
     }
 }
