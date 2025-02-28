@@ -54,7 +54,7 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
-    public final ClimbingSystem climbingSystem = new ClimbingSystem();
+    //public final ClimbingSystem climbingSystem = new ClimbingSystem();
     public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
     public final CoralClaw coralClawSystem = new CoralClaw();
 
@@ -109,8 +109,8 @@ public class RobotContainer {
             new JoystickButton(driverFlightHotasOne, 3).onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
             new JoystickButton(driverFlightHotasOne, 1).onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
 
-            new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            //new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            //new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
 
 
@@ -151,8 +151,8 @@ public class RobotContainer {
             driverJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
             driverJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
 
-            driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
         }
 
@@ -174,7 +174,7 @@ public class RobotContainer {
         coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem));
         coralArmSystem.setDefaultCommand(new RunCommand(coralArmSystem::update, coralArmSystem));
         algaeArmSystem.setDefaultCommand(new RunCommand(algaeArmSystem::updateInTeleOp, algaeArmSystem));
-        climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
+        //climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
         //Coral Elevator Controls
     }

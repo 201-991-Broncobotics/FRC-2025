@@ -49,14 +49,17 @@ public class Settings {
         public static double intakePower = 1;
         public static double holdPower = 0.25; // TODO add this
         public static double outtakePower = -1;
-        public static int intakeSmartStallCurrent = 10;
-        public static int intakeSecondaryCurrent = 15;
+        public static int intakeSmartStallCurrent = 4;
+        public static int intakeSecondaryCurrent = 5;
 
         public static int diffyMotorSmartStallCurrent = 25;
 
+        public static double testingPitch = 0;
+        public static double testingRoll = 0;
+
     }
     public static class ClimbingSettings{
-        public static double climbingSpeed = 1;
+        public static double climbingSpeed = 0.1;
     }
 
     public static class AlgaeArmSettings {

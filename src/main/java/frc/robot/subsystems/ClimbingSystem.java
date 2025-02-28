@@ -1,6 +1,12 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -10,13 +16,22 @@ import frc.robot.Settings.ClimbingSettings;
 public class ClimbingSystem extends SubsystemBase {
 
     private double climbingSpeed;
-    private TalonFX climbingMotor;
+    private SparkMax climbingMotor;
 
     private double ClimbingPower = 0;
 
+    private SparkMaxConfig climbMotorConfig;
+
 
     public ClimbingSystem() {
-        climbingMotor = new TalonFX(MotorConstants.climbingMotorID);
+        climbingMotor = new SparkMax(MotorConstants.climbingMotorID, MotorType.kBrushless);
+        climbMotorConfig = new SparkMaxConfig();
+
+        climbMotorConfig.idleMode(IdleMode.kBrake);
+
+        climbingMotor.configure(climbMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+
         climbingSpeed = ClimbingSettings.climbingSpeed;
         ClimbingPower = 0;
     }
@@ -28,7 +43,7 @@ public class ClimbingSystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getOutputCurrent());
     }
 
     @Override

@@ -21,13 +21,12 @@ public final class Constants {
         public static final int coralRightElevatorID = 11;
         public static final int coralPivotID =12;
 
-        public static final int climbingMotorID =13;
-
         // NEOs
-        public static final int algaeRollerID = 24;
+        public static final int algaeRollerID = 19;
         public static final int leftDiffyID = 1;
         public static final int rightDiffyID = 20;
         public static final int coralRollerID = 23;
+        public static final int climbingMotorID = 24;
     }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;
