@@ -53,9 +53,13 @@ public class CoralClaw extends SubsystemBase {
 
 
         // set configurations
-        rightMotorConfig.idleMode(IdleMode.kBrake);
-        leftMotorConfig.idleMode(IdleMode.kBrake);
-        coralMotorConfig.idleMode(IdleMode.kCoast);
+        rightMotorConfig.idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(CoralClawSettings.diffyMotorSmartStallCurrent);
+        leftMotorConfig.idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(CoralClawSettings.diffyMotorSmartStallCurrent);
+        coralMotorConfig.idleMode(IdleMode.kCoast)
+                .smartCurrentLimit(CoralClawSettings.intakeSmartStallCurrent)
+                .secondaryCurrentLimit(CoralClawSettings.intakeSecondaryCurrent); // needs to be limited as we stall the motor intentionally when pickng up
         rightMotorConfig.closedLoop.pidf(kP, kI, kD, RFF);
         leftMotorConfig.closedLoop.pidf(kP, kI, kD, LFF);
 
@@ -82,7 +86,7 @@ public class CoralClaw extends SubsystemBase {
     public void update() {
         //Limits
         if(Pitch > maxPitch) {Pitch = maxPitch;} else if (Pitch < minPitch){Pitch = minPitch;}
-        if(Roll > rollRange) {Roll = rollRange;} else if (Roll < -rollRange){Roll = -rollRange;}
+        if(Roll > 0.5*rollRange) {Roll = 0.5*rollRange;} else if (Roll < -0.5*rollRange){Roll = -0.5*rollRange;}
 
         rollerMotor.set(RollerPower);
 
@@ -112,11 +116,11 @@ public class CoralClaw extends SubsystemBase {
         rmotor.configureAsync(rightMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
         SmartDashboard.putNumber("CoralClaw Target Pitch", Pitch);
-        SmartDashboard.putNumber("CoralClaw Target Roll", Pitch);
+        SmartDashboard.putNumber("CoralClaw Target Roll", Roll);
         SmartDashboard.putNumber("CoralClaw Current Pitch", getCurrentPitch());
         SmartDashboard.putNumber("CoralClaw Current Roll", getCurrentRoll());
-        SmartDashboard.putNumber("CoralClaw Left Motor Power", getCurrentPitch());
-        SmartDashboard.putNumber("CoralClaw Right Motor Power", getCurrentRoll());
+        SmartDashboard.putNumber("CoralClaw Left Motor Power", rmotor.getAppliedOutput()); // may or may not be power
+        SmartDashboard.putNumber("CoralClaw Right Motor Power", lmotor.getAppliedOutput());
         SmartDashboard.putNumber("CoralClaw Roller Power", RollerPower);
 
     }
@@ -154,6 +158,10 @@ public class CoralClaw extends SubsystemBase {
 
     public void outtakeRoller() {
         RollerPower = CoralClawSettings.outtakePower;
+    }
+
+    public void holdRoller() {
+        RollerPower = CoralClawSettings.holdPower;
     }
 
 }

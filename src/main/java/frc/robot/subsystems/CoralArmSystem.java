@@ -65,10 +65,8 @@ public class CoralArmSystem extends SubsystemBase {
         TargetArmAngle = angle;
     }
 
-
-    @Override
-    public void periodic() {
-       // TargetArmAngle= SmartDashboard.getNumber("TargetAngle", CurrentArmAngle);
+    
+    public void update() {
         
         if(testEle!=null){
             leftElevator.set(-testEle.getAsDouble());
@@ -105,7 +103,13 @@ public class CoralArmSystem extends SubsystemBase {
         else*/
         
         coralPivot.set(-armFeedforward.calculate(Math.toRadians(TargetArmAngle), ArmError/9));
-        
+
+    }
+
+
+    @Override
+    public void periodic() {
+       // TargetArmAngle= SmartDashboard.getNumber("TargetAngle", CurrentArmAngle);
         
         //Smart Dashboard updates
         SmartDashboard.putNumber("Elevator", CurrentElevatorHeight);

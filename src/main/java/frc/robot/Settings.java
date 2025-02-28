@@ -12,6 +12,8 @@ public class Settings {
 
     public static boolean tuningTelemetryEnabled = true;
 
+    public static boolean useFlightStick = false;
+
     public static class CoralSystemSettings {
         public static double kSE = 0.0001;
         public static double kGE = 0.00;
@@ -30,22 +32,27 @@ public class Settings {
         public static double startRoll = 0;
         public static double startPitch = 0;
 
-        //Right Motor PID & Speed
+        //Diffy Motor PID
         public static double kP = 0.0;
         public static double kI = 0.0;
         public static double kD = 0.0;
 
-        // feedforward values which one motor needs to be set really high becauswe Cole and Micah suck at designing and building
+        // feedforward values which one motor needs to be set really high becauswe Cole and Micah suck at building and designing
         public static double RFF = 0.0;
         public static double LFF = 0.0;
 
         //Limits - Degrees
-        public static double maxPitch = 90.0;
+        public static double maxPitch = 90.0; // degrees
         public static double minPitch = -90.0;
-        public static double rollRange = 90.0;
+        public static double rollRange = 180.0;
 
         public static double intakePower = 1;
+        public static double holdPower = 0.25; // TODO add this
         public static double outtakePower = -1;
+        public static int intakeSmartStallCurrent = 10;
+        public static int intakeSecondaryCurrent = 15;
+
+        public static int diffyMotorSmartStallCurrent = 25;
 
     }
     public static class ClimbingSettings{
@@ -73,14 +80,14 @@ public class Settings {
 
         // Limits
         public static double maxAngleLowerJoint = Math.toRadians(120);
-        public static double minAngleLowerJoint = Math.toRadians(-5);
+        public static double minAngleLowerJoint = Math.toRadians(10);
         public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
         public static double minAngleUpperJointFromLower = Math.toRadians(-170);
         public static double maxDistanceInX = -8; // prevents hitting the hanging mechanism
         public static double maxDistanceOutX = 19.5; // expansion limit
         public static double maxDistanceDownY = -AlgaeArmConstants.LowerJointHeight + 2; // prevents hitting the floor
 
-        public static double PositionTolerance = 1; // in inches for checking when arm has reached target position
+        public static double PositionTolerance = 5; // in inches for checking when arm has reached target position
 
         public static double maxJoystickMovementSpeed = 5; // in/s
         public static double temporaryStaticPower = 0;
@@ -91,5 +98,7 @@ public class Settings {
         public static double IntakePower = 0.5;
         public static double HoldPower = 0.25;
         public static double OuttakePower = -0.5;
+        public static int maxSmartCurrent = 15;
+        public static int secondaryCurrentLimit = 20;
     }
 }

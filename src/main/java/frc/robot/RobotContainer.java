@@ -13,6 +13,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -31,6 +32,7 @@ import frc.robot.subsystems.ClimbingSystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralArmSystem;
 import frc.robot.subsystems.CoralClaw;
+import frc.robot.utility.Functions;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -47,10 +49,12 @@ public class RobotContainer {
 
     private final CommandXboxController driverJoystick = new CommandXboxController(0);
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
+    private final Joystick driverFlightHotasOne = new Joystick(2);
+    
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
-    public final ClimbingSystem climbingSystem = new ClimbingSystem(operatorJoystick.rightBumper(), operatorJoystick.rightTrigger());
+    public final ClimbingSystem climbingSystem = new ClimbingSystem();
     public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
     public final CoralClaw coralClawSystem = new CoralClaw();
 
@@ -66,42 +70,100 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
+
+        if (Settings.useFlightStick) {
+            drivetrain.setDefaultCommand( // Flight Stick
             // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
-        );
+                // normal
+                drivetrain.applyRequest(() ->
+                    drive.withVelocityX(-driverFlightHotasOne.getY() * Functions.throttleCurve(driverFlightHotasOne.getThrottle(), 2) * MaxSpeed) // Drive forward with negative Y (forward)
+                        .withVelocityY(-driverFlightHotasOne.getX() * Functions.throttleCurve(driverFlightHotasOne.getThrottle(), 2) * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(-driverFlightHotasOne.getTwist() * Functions.throttleCurve(driverFlightHotasOne.getThrottle(), 2) * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                )
+                // normalized to a curve
+                /*
+                drivetrain.applyRequest(() ->
+                    drive.withVelocityX(Functions.getYOfVectorWithMag(-driverFlightHotasOne.getX(), -driverFlightHotasOne.getY(), driverFlightHotasOne.getThrottle(), 2) * MaxSpeed) // Drive forward with negative Y (forward)
+                        .withVelocityY(Functions.getXOfVectorWithMag(-driverFlightHotasOne.getX(), -driverFlightHotasOne.getY(), driverFlightHotasOne.getThrottle(), 2) * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(-driverFlightHotasOne.getTwist() * Functions.throttleCurve(driverFlightHotasOne.getThrottle(), 2) * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                )
+                */
+                
+            );
 
-        driverJoystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        driverJoystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-driverJoystick.getLeftY(), -driverJoystick.getLeftX()))
-        ));
+            new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake));
+            new JoystickButton(driverFlightHotasOne, 6).whileTrue(drivetrain.applyRequest(() ->
+                point.withModuleDirection(new Rotation2d(-driverFlightHotasOne.getY(), -driverFlightHotasOne.getX()))
+            ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        driverJoystick.back().and(driverJoystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        driverJoystick.back().and(driverJoystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        driverJoystick.start().and(driverJoystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        driverJoystick.start().and(driverJoystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+            // Run SysId routines when holding back/start and X/Y.
+            // Note that each routine should be run exactly once in a single log.
+            //new JoystickButton(driverFlightHotasOne, 12).and(new JoystickButton(driverFlightHotasOne, 12)).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+            //new JoystickButton(driverFlightHotasOne, 12).and(new JoystickButton(driverFlightHotasOne, 12)).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+            //new JoystickButton(driverFlightHotasOne, 12).and(new JoystickButton(driverFlightHotasOne, 12)).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+            //new JoystickButton(driverFlightHotasOne, 12).and(new JoystickButton(driverFlightHotasOne, 12)).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+            
+            // reset the field-centric heading on left bumper press
+            new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        // reset the field-centric heading on left bumper press
-        driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            new JoystickButton(driverFlightHotasOne, 3).onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
+            new JoystickButton(driverFlightHotasOne, 1).onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
+
+            new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+
+
+
+        } else { // Normal Logitech or xbox Controller
+            drivetrain.setDefaultCommand(
+            // Drivetrain will execute this command periodically
+                // normal
+                drivetrain.applyRequest(() ->
+                    drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                        .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                )
+                // normalized to a curve
+                /* 
+                drivetrain.applyRequest(() ->
+                    drive.withVelocityX(Functions.getYOfVectorMag(-driverJoystick.getLeftX(), -driverJoystick.getLeftY(), 2) * MaxSpeed) // Drive forward with negative Y (forward)
+                        .withVelocityY(Functions.getXOfVectorMag(-driverJoystick.getLeftX(), -driverJoystick.getLeftY(), 2) * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(Functions.throttleCurve(-driverJoystick.getRightX(), 2) * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                )
+                */
+            );
+
+            driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
+            driverJoystick.a().whileTrue(drivetrain.applyRequest(() ->
+                point.withModuleDirection(new Rotation2d(-driverJoystick.getLeftY(), -driverJoystick.getLeftX()))
+            ));
+
+            // Run SysId routines when holding back/start and X/Y.
+            // Note that each routine should be run exactly once in a single log.
+            driverJoystick.back().and(driverJoystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+            driverJoystick.back().and(driverJoystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+            driverJoystick.start().and(driverJoystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+            driverJoystick.start().and(driverJoystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+            
+            // reset the field-centric heading on left bumper press
+            driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+            driverJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
+            driverJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
+
+            driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+
+        }
 
         operatorJoystick.leftBumper().onTrue(runElevatorUp);
         operatorJoystick.leftTrigger().onTrue(runElevatorDown);
-        operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
-        operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
+        operatorJoystick.rightBumper().onTrue(new InstantCommand(coralClawSystem::outtakeRoller)).onFalse(new InstantCommand(coralClawSystem::stopRoller));
+        operatorJoystick.rightTrigger().onTrue(new InstantCommand(coralClawSystem::intakeRoller)).toggleOnFalse(new InstantCommand(coralClawSystem::holdRoller));
 
         operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
         operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enableArm));
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
-
-        operatorJoystick.povUp().onTrue(new InstantCommand(coralClawSystem::intakeRoller));
-        operatorJoystick.povDown().onTrue(new InstantCommand(coralClawSystem::stopRoller));
-        operatorJoystick.povRight().onTrue(new InstantCommand(coralClawSystem::outtakeRoller));
 
         // temporary Algae Arm controls
         algaeArmSystem.setControllerInputs( 
@@ -109,8 +171,10 @@ public class RobotContainer {
             () -> -operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed
         );
 
-        coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem)); // might work
+        coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem));
+        coralArmSystem.setDefaultCommand(new RunCommand(coralArmSystem::update, coralArmSystem));
         algaeArmSystem.setDefaultCommand(new RunCommand(algaeArmSystem::updateInTeleOp, algaeArmSystem));
+        climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
         //Coral Elevator Controls
     }

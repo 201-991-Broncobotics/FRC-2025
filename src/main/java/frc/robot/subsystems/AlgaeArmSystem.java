@@ -164,6 +164,13 @@ public class AlgaeArmSystem extends SubsystemBase {
             //SmartDashboard.putNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
 
             SmartDashboard.putNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+
+
+            SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
+            SmartDashboard.putNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
+            SmartDashboard.putNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
+            SmartDashboard.putNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
+            SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
         }
     }
 
@@ -283,6 +290,8 @@ public class AlgaeArmSystem extends SubsystemBase {
             if (!(upperJointKS == AlgaeArmSettings.L2Feedforward.getKs() && upperJointKG == AlgaeArmSettings.L2Feedforward.getKg() && upperJointKV == AlgaeArmSettings.L2Feedforward.getKv())) {
                 AlgaeArmSettings.L2Feedforward = new ArmFeedforward(upperJointKS, upperJointKG, upperJointKV);
             }
+
+
             
             //AlgaeArmSettings.maxAngleLowerJoint = SmartDashboard.getNumber("Tune Algae Limit maxAngleLowerJoint", AlgaeArmSettings.maxAngleLowerJoint);
             //AlgaeArmSettings.minAngleLowerJoint = SmartDashboard.getNumber("Tune Algae Limit minAngleLowerJoint", AlgaeArmSettings.minAngleLowerJoint);
@@ -293,6 +302,17 @@ public class AlgaeArmSystem extends SubsystemBase {
             //AlgaeArmSettings.maxDistanceDownY = SmartDashboard.getNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
 
             AlgaeArmSettings.maxJoystickMovementSpeed = SmartDashboard.getNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+
+
+            AlgaeRollerSettings.HoldPower = SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
+            AlgaeRollerSettings.OuttakePower = SmartDashboard.getNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
+            AlgaeRollerSettings.IntakePower = SmartDashboard.getNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
+            AlgaeRollerSettings.maxSmartCurrent = (int) SmartDashboard.getNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
+            AlgaeRollerSettings.secondaryCurrentLimit = (int) SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
+
+            clawRollerConfig.smartCurrentLimit(AlgaeRollerSettings.maxSmartCurrent)
+                .secondaryCurrentLimit(AlgaeRollerSettings.secondaryCurrentLimit);
+            clawRoller.configureAsync(clawRollerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         }
         
 
