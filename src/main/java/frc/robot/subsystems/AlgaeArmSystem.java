@@ -87,9 +87,11 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
 
     private double clawRollerPower = 0;
-    private boolean armStopped = false;
+    private boolean armStopped = true; // TODO: disable
 
     private double lastL1TargetAngle = 0, lastL2TargetAngle = 0, lastL1MotorPower = 0, lastL2MotorPower = 0;
+
+    private double targetL1Angle = 0, targetL2Angle = 0;
 
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
@@ -576,6 +578,10 @@ public class AlgaeArmSystem extends SubsystemBase {
         Target = new Vector2d(Target.x + x * frameTime, Target.y + y * frameTime);
     }
 
+    public void setJointPowers() {
+        
+    }
+
     public void stopArm() {
         Target = getCurrentPoint();
         armStopped = true;
@@ -594,6 +600,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
     public void setRightBias(boolean rightBias) { RightBias = rightBias; }
+
+    public void toggleRightBias() { RightBias = !RightBias;}
 
     public boolean getRightBias() { return RightBias; }
 
@@ -677,5 +685,10 @@ public class AlgaeArmSystem extends SubsystemBase {
     public void intakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.IntakePower; }
     public void holdRollerClaw() { clawRollerPower = AlgaeRollerSettings.HoldPower; }
     public void outtakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.OuttakePower; }
+
+
+
+
+    
 
 }

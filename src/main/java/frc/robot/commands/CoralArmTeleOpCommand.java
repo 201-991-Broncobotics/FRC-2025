@@ -29,18 +29,21 @@ public class CoralArmTeleOpCommand extends Command {
       
         switch (coralArmSystem.getStage()) {//todo make settings
             case 0:
-                coralArmSystem.setElevatorPos(0);
-                coralArmSystem.setArmAngle(0);
+                coralArmSystem.setElevatorPos(0); // All of these are in Christian units
+                coralArmSystem.setArmAngle(20);
+                coralArmSystem.unstowArm();
                 break;
             case 1:
                 coralArmSystem.setElevatorPos(40);
                 coralArmSystem.setArmAngle(60);
+                coralArmSystem.unstowArm();
                 break;
             case 2:
-                coralArmSystem.setElevatorPos(100);
+                coralArmSystem.setElevatorPos(140);
                 coralArmSystem.setArmAngle(90);
+                coralArmSystem.unstowArm();
                 break;
-             default:
+            default:
                 break;
         }
         SmartDashboard.putNumber("Elevator Stage", coralArmSystem.getStage());

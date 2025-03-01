@@ -50,6 +50,8 @@ public class RobotContainer {
     private final CommandXboxController driverJoystick = new CommandXboxController(0);
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
     private final Joystick driverFlightHotasOne = new Joystick(2);
+
+    private DoubleSupplier driverThrottle = () -> 0.5 + 0.5 * driverJoystick.getLeftTriggerAxis();
     
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
@@ -118,19 +120,20 @@ public class RobotContainer {
             drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
                 // normal
+                /*
                 drivetrain.applyRequest(() ->
                     drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
                 )
                 // normalized to a curve
-                /* 
-                drivetrain.applyRequest(() ->
-                    drive.withVelocityX(Functions.getYOfVectorMag(-driverJoystick.getLeftX(), -driverJoystick.getLeftY(), 2) * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(Functions.getXOfVectorMag(-driverJoystick.getLeftX(), -driverJoystick.getLeftY(), 2) * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(Functions.throttleCurve(-driverJoystick.getRightX(), 2) * MaxAngularRate) // Drive counterclockwise with negative X (left)
-                )
                 */
+                drivetrain.applyRequest(() ->
+                    drive.withVelocityX(Functions.getYOfVectorMag(-driverJoystick.getLeftX(), -driverJoystick.getLeftY(), 3) * MaxSpeed * driverThrottle.getAsDouble()) // Drive forward with negative Y (forward)
+                        .withVelocityY(Functions.getXOfVectorMag(-driverJoystick.getLeftX(), -driverJoystick.getLeftY(), 3) * MaxSpeed * driverThrottle.getAsDouble()) // Drive left with negative X (left)
+                        .withRotationalRate(Functions.throttleCurve(-driverJoystick.getRightX(), 3) * MaxAngularRate * driverThrottle.getAsDouble()) // Drive counterclockwise with negative X (left)
+                )
+                
             );
 
             driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -160,10 +163,16 @@ public class RobotContainer {
         operatorJoystick.leftTrigger().onTrue(runElevatorDown);
         operatorJoystick.rightBumper().onTrue(new InstantCommand(coralClawSystem::outtakeRoller)).onFalse(new InstantCommand(coralClawSystem::stopRoller));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(coralClawSystem::intakeRoller)).toggleOnFalse(new InstantCommand(coralClawSystem::holdRoller));
+        
+        operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::toggleRightBias));
+        operatorJoystick.povUp().onTrue(new InstantCommand(coralArmSystem::toggleCoralArm));
 
         operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
         operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enableArm));
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
+
+        operatorJoystick.povDownLeft().onTrue(new InstantCommand(coralClawSystem::toggleLeftDiffyPosition));
+        operatorJoystick.povDownRight().onTrue(new InstantCommand(coralArmSystem::toggleStoreArm));
 
         // temporary Algae Arm controls
         algaeArmSystem.setControllerInputs( 

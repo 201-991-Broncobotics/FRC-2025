@@ -36,6 +36,8 @@ public class CoralClaw extends SubsystemBase {
 
     private SparkMaxConfig rightMotorConfig, leftMotorConfig, coralMotorConfig;
 
+    private double LeftDiffyTarget = 0;
+
     public CoralClaw() {
         RollerPower = 0;
 
@@ -61,8 +63,8 @@ public class CoralClaw extends SubsystemBase {
         coralMotorConfig.idleMode(IdleMode.kCoast);
                 //.smartCurrentLimit(CoralClawSettings.intakeSmartStallCurrent)
                 //.secondaryCurrentLimit(CoralClawSettings.intakeSecondaryCurrent); // needs to be limited as we stall the motor intentionally when pickng up
-        rightMotorConfig.closedLoop.pidf(kP, kI, kD, RFF);
-        leftMotorConfig.closedLoop.pidf(kP, kI, kD, LFF);
+        //rightMotorConfig.closedLoop.pidf(kP, kI, kD, RFF);
+        //leftMotorConfig.closedLoop.pidf(kP, kI, kD, LFF);
 
         // apply configurations initially
         //rmotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -74,11 +76,15 @@ public class CoralClaw extends SubsystemBase {
         lencoder = () -> gearRatio * lmotor.getEncoder().getPosition() * 2*Math.PI;
 
         if (Settings.tuningTelemetryEnabled) {
-            SmartDashboard.putNumber("Tune Coral Claw kP", CoralClawSettings.kP);
-            SmartDashboard.putNumber("Tune Coral Claw kI", CoralClawSettings.kI);
-            SmartDashboard.putNumber("Tune Coral Claw kD", CoralClawSettings.kD);
-            SmartDashboard.putNumber("Tune Coral Claw Right FF", CoralClawSettings.RFF);
-            SmartDashboard.putNumber("Tune Coral Claw Left FF", CoralClawSettings.LFF);
+            //SmartDashboard.putNumber("Tune Coral Claw kP", CoralClawSettings.kP);
+            //SmartDashboard.putNumber("Tune Coral Claw kI", CoralClawSettings.kI);
+            //SmartDashboard.putNumber("Tune Coral Claw kD", CoralClawSettings.kD);
+            //SmartDashboard.putNumber("Tune Coral Claw Right FF", CoralClawSettings.RFF);
+            //SmartDashboard.putNumber("Tune Coral Claw Left FF", CoralClawSettings.LFF);
+
+            SmartDashboard.putNumber("Tune Coral Claw kP", CoralClawSettings.LeftDiffyPID.getP());
+            SmartDashboard.putNumber("Tune Coral Claw kI", CoralClawSettings.LeftDiffyPID.getI());
+            SmartDashboard.putNumber("Tune Coral Claw kD", CoralClawSettings.LeftDiffyPID.getD());
 
             //SmartDashboard.putNumber("Tune Coral Roller SmartCurrent", CoralClawSettings.intakeSmartStallCurrent);
             //SmartDashboard.putNumber("Tune Coral Roller SecondaryCurrent", CoralClawSettings.intakeSecondaryCurrent);
@@ -102,7 +108,8 @@ public class CoralClaw extends SubsystemBase {
         calculateTargetPos();//get angles for each motor
 
         //rmotor.getClosedLoopController().setReference(rMotorPos/360.0, SparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Motor
-        lmotor.getClosedLoopController().setReference(lMotorPos/360.0, SparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Motor
+        //lmotor.getClosedLoopController().setReference(lMotorPos/360.0, SparkMax.ControlType.kPosition);//convert 0-360 to 0-1 & set Motor
+        lmotor.set(CoralClawSettings.LeftDiffyPID.calculate(lencoder.getAsDouble(), LeftDiffyTarget));
     }
 
 
@@ -112,33 +119,38 @@ public class CoralClaw extends SubsystemBase {
         // This method will be called once per scheduler run
         // read PID coefficients from SmartDashboard
         if (Settings.tuningTelemetryEnabled) {
-            CoralClawSettings.kP = SmartDashboard.getNumber("Tune Coral Claw kP", CoralClawSettings.kP);
-            CoralClawSettings.kI = SmartDashboard.getNumber("Tune Coral Claw kI", CoralClawSettings.kI);
-            CoralClawSettings.kD = SmartDashboard.getNumber("Tune Coral Claw kD", CoralClawSettings.kD);
-            CoralClawSettings.RFF = SmartDashboard.getNumber("Tune Coral Claw Right FF", CoralClawSettings.RFF);
-            CoralClawSettings.LFF = SmartDashboard.getNumber("Tune Coral Claw Left FF", CoralClawSettings.LFF);
+            //CoralClawSettings.kP = SmartDashboard.getNumber("Tune Coral Claw kP", CoralClawSettings.kP);
+            //CoralClawSettings.kI = SmartDashboard.getNumber("Tune Coral Claw kI", CoralClawSettings.kI);
+            //CoralClawSettings.kD = SmartDashboard.getNumber("Tune Coral Claw kD", CoralClawSettings.kD);
+            //CoralClawSettings.RFF = SmartDashboard.getNumber("Tune Coral Claw Right FF", CoralClawSettings.RFF);
+            //CoralClawSettings.LFF = SmartDashboard.getNumber("Tune Coral Claw Left FF", CoralClawSettings.LFF);
+
+            CoralClawSettings.LeftDiffyPID.setP(SmartDashboard.getNumber("Tune Coral Claw kP", CoralClawSettings.LeftDiffyPID.getP()));
+            CoralClawSettings.LeftDiffyPID.setI(SmartDashboard.getNumber("Tune Coral Claw kI", CoralClawSettings.LeftDiffyPID.getI()));
+            CoralClawSettings.LeftDiffyPID.setD(SmartDashboard.getNumber("Tune Coral Claw kD", CoralClawSettings.LeftDiffyPID.getD()));
 
             //CoralClawSettings.intakeSmartStallCurrent = (int) SmartDashboard.getNumber("Tune Coral Roller SmartCurrent", CoralClawSettings.intakeSmartStallCurrent);
             //CoralClawSettings.intakeSecondaryCurrent = (int) SmartDashboard.getNumber("Tune Coral Roller SecondaryCurrent", CoralClawSettings.intakeSecondaryCurrent);
         }
 
+        SmartDashboard.putNumber("CORAL left diffy motor angle target", LeftDiffyTarget);
         CoralClawSettings.testingPitch = SmartDashboard.getNumber("Testing Diffy Pitch", CoralClawSettings.testingPitch);
         CoralClawSettings.testingRoll = SmartDashboard.getNumber("Testing Diffy Roll", CoralClawSettings.testingRoll);
         SmartDashboard.putNumber("Coral Roller Current", rollerMotor.getOutputCurrent());
 
-        rightMotorConfig.closedLoop.pidf(CoralClawSettings.kP, CoralClawSettings.kI, CoralClawSettings.kD, CoralClawSettings.RFF);
-        leftMotorConfig.closedLoop.pidf(CoralClawSettings.kP, CoralClawSettings.kI, CoralClawSettings.kD, CoralClawSettings.LFF);
+        //rightMotorConfig.closedLoop.pidf(CoralClawSettings.kP, CoralClawSettings.kI, CoralClawSettings.kD, CoralClawSettings.RFF);
+        //leftMotorConfig.closedLoop.pidf(CoralClawSettings.kP, CoralClawSettings.kI, CoralClawSettings.kD, CoralClawSettings.LFF);
 
         //rmotor.configureAsync(rightMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        lmotor.configureAsync(leftMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+        //lmotor.configureAsync(leftMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         //rollerMotor.configureAsync(coralMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
         SmartDashboard.putNumber("CoralClaw Target Pitch", Pitch);
         SmartDashboard.putNumber("CoralClaw Target Roll", Roll);
         SmartDashboard.putNumber("CoralClaw Current Pitch", getCurrentPitch());
         SmartDashboard.putNumber("CoralClaw Current Roll", getCurrentRoll());
-        //SmartDashboard.putNumber("CoralClaw Left Motor Power", rmotor.getAppliedOutput()); // may or may not be power
-        SmartDashboard.putNumber("CoralClaw Right Motor Power", lmotor.getAppliedOutput());
+        //SmartDashboard.putNumber("CoralClaw Right Motor Power", rmotor.getAppliedOutput()); // may or may not be power
+        SmartDashboard.putNumber("CoralClaw Left Motor Power", lmotor.getAppliedOutput());
         SmartDashboard.putNumber("CoralClaw Roller Power", RollerPower);
 
     }
@@ -185,6 +197,11 @@ public class CoralClaw extends SubsystemBase {
     public void setDiffyClaw(double pitch, double roll) {
         Pitch = pitch;
         Roll = roll;
+    }
+
+    public void toggleLeftDiffyPosition() {
+        if (CoralClawSettings.startRotatePosition == LeftDiffyTarget) LeftDiffyTarget = CoralClawSettings.secondRotatePosition;
+        else LeftDiffyTarget = CoralClawSettings.startRotatePosition;
     }
 
 }
