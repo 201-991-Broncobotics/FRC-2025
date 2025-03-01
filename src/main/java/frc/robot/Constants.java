@@ -42,6 +42,14 @@ public final class Constants {
         public static final double maxVoltage = 12; 
         public static final double minVoltage = 6; 
 
+
+        // Gravity compensation related
+        public static final double L1Mass = 3.4505187; // lbs
+        public static final double L2Mass = 6.0573773; // lbs
+        public static final double L1CoM = 11.672603; // inches along segment length 
+        public static final double L2CoM = 15.3324520; // inches along segment length 
+
+
     }
 
 }

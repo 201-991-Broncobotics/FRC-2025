@@ -81,33 +81,8 @@ public class Functions {
      * @param value input
      * @param mag power of the curve
      */
-    public static double throttleCurve(double value, double mag) {
+    public static double throttleCurve(double value, int mag) {
         return Math.abs(Math.pow(value, mag)) * Math.signum(value); 
     }
-
-    /**
-     * This is because applying a throttle curve to each X and Y individually creates a bias towards moving orthogonally
-     * A curve mag of 1 would just apply the x and y normally, 2 would apply a quadratic curve, etc.
-     */
-    public static double getXOfVectorMag(double X, double Y, double throttleCurveMag) {
-        return throttleCurve(Math.hypot(X,Y), throttleCurveMag) * Math.cos(Math.atan2(Y,X));
-    }
-
-    /**
-     * This is because applying a throttle curve to each X and Y individually creates a bias towards moving orthogonally
-     * A curve mag of 1 would just apply the x and y normally, 2 would apply a quadratic curve, etc.
-     */
-    public static double getYOfVectorMag(double X, double Y, double throttleCurveMag) {
-        return throttleCurve(Math.hypot(X,Y), throttleCurveMag) * Math.sin(Math.atan2(Y,X));
-    }
-
-    public static double getXOfVectorWithMag(double X, double Y, double mag, double throttleCurveMag) {
-        return throttleCurve(mag, throttleCurveMag) * Math.cos(Math.atan2(Y,X));
-    }
-
-    public static double getYOfVectorWithMag(double X, double Y, double mag, double throttleCurveMag) {
-        return throttleCurve(mag, throttleCurveMag) * Math.sin(Math.atan2(Y,X));
-    }
-
 
 }

@@ -1,20 +1,23 @@
 package frc.robot.subsystems;
 
+import static frc.robot.Constants.AlgaeArmConstants.L1CoM;
+import static frc.robot.Constants.AlgaeArmConstants.L1Mass;
+import static frc.robot.Constants.AlgaeArmConstants.L2CoM;
+import static frc.robot.Constants.AlgaeArmConstants.L2Mass;
 import static frc.robot.utility.Functions.round;
 
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AlgaeArmConstants;
@@ -67,7 +70,8 @@ public class AlgaeArmSystem extends SubsystemBase {
 
     private DoubleSupplier L1Encoder, L2Encoder;
 
-    private DoubleSupplier TeleOpManualControlX, TeleOpManualControlY;
+    private DoubleSupplier TeleOpManualControl1, TeleOpManualControl2;
+    private DoubleSupplier TeleOpManualControlL1, TeleOpManualControlL2;
 
     private MotionProfile2d motionProfile;
 
@@ -83,8 +87,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     private SparkMaxConfig clawRollerConfig;
 
 
-    private double lowerGearRatio = (1.0/5.0 * 1.0/5.0) * 2*Math.PI; // motor angle * gear ratio = actual angle
-    private double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
+    private final double lowerGearRatio = (1.0/5.0 * 1.0/5.0) * 2*Math.PI; // motor angle * gear ratio = actual angle
+    private final double upperGearRatio = (1.0/5.0 * 1.0/3.0 * 1.0/3.0) * 2*Math.PI;
 
     private double clawRollerPower = 0;
     private boolean armStopped = true; // TODO: disable
@@ -92,6 +96,7 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double lastL1TargetAngle = 0, lastL2TargetAngle = 0, lastL1MotorPower = 0, lastL2MotorPower = 0;
 
     private double targetL1Angle = 0, targetL2Angle = 0;
+    private boolean controlOrthogonal = true;
 
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
@@ -99,7 +104,6 @@ public class AlgaeArmSystem extends SubsystemBase {
     public AlgaeArmSystem(double firstSegmentStartAngle, double secondSegmentStartAngle) {
 
         clawRollerConfig = new SparkMaxConfig();
-
         // initialize motors
         bottomPivot = new TalonFX(MotorConstants.algaeBottomPivotID);
         topPivot = new TalonFX(MotorConstants.algaeTopPivotID);
@@ -144,10 +148,10 @@ public class AlgaeArmSystem extends SubsystemBase {
             SmartDashboard.putNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
             SmartDashboard.putNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
 
-            SmartDashboard.putNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
-            SmartDashboard.putNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
+            //SmartDashboard.putNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
+            //SmartDashboard.putNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
 
-            SmartDashboard.putNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
+            //SmartDashboard.putNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
 
             SmartDashboard.putBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
             SmartDashboard.putNumber("Tune Algae lower joint kS", AlgaeArmSettings.L1Feedforward.getKs());
@@ -165,25 +169,44 @@ public class AlgaeArmSystem extends SubsystemBase {
             //SmartDashboard.putNumber("Tune Algae Limit maxDistanceOutX", AlgaeArmSettings.maxDistanceOutX);
             //SmartDashboard.putNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
 
-            SmartDashboard.putNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+            //SmartDashboard.putNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
 
 
-            SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
-            SmartDashboard.putNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
-            SmartDashboard.putNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
+            //SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
+            //SmartDashboard.putNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
+            //SmartDashboard.putNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
             //SmartDashboard.putNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
             //SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
+
+            SmartDashboard.putNumber("Tune Algae Lower Joint Gravity", AlgaeArmSettings.lowerJointGravityMult);
+            SmartDashboard.putNumber("Tune Algae Upper Joint Gravity Power", AlgaeArmSettings.upperJointGravityPower);
         }
     }
 
-    public void setControllerInputs(DoubleSupplier manualControlX, DoubleSupplier manualControlY) {
-        TeleOpManualControlX = manualControlX;
-        TeleOpManualControlY = manualControlY;
+    public void setControllerInputsOrtho(DoubleSupplier manualControlX, DoubleSupplier manualControlY) {
+        TeleOpManualControl1 = manualControlX;
+        TeleOpManualControl2 = manualControlY;
+        controlOrthogonal = true;
+    }
+
+    public void setControllerInputsJoint(DoubleSupplier lowerJointControl, DoubleSupplier upperJointControl) {
+        TeleOpManualControl1 = lowerJointControl;
+        TeleOpManualControl2 = upperJointControl;
+        controlOrthogonal = false;
     }
 
 
     public void updateInTeleOp() {
-        setTargetMoveSpeeds(TeleOpManualControlX.getAsDouble(), TeleOpManualControlY.getAsDouble());
+        if (controlOrthogonal) {
+            setTargetMoveSpeeds(TeleOpManualControl1.getAsDouble(), TeleOpManualControl2.getAsDouble());
+        } else {
+            targetL1Angle += AlgaeArmSettings.manualLowerJointSpeed * TeleOpManualControl1.getAsDouble() * frameTime;
+            targetL2Angle += AlgaeArmSettings.manualUpperJointSpeed * TeleOpManualControl2.getAsDouble() * frameTime;
+            targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+            targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + targetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + targetL1Angle, targetL2Angle);
+            setTargetAngles(targetL1Angle, targetL2Angle);
+        }
+        
         update();
     }
 
@@ -206,7 +229,7 @@ public class AlgaeArmSystem extends SubsystemBase {
         double TargetL2Angle = getTargetUpperAngle();
         TargetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, TargetL1Angle);
         TargetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + TargetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + TargetL1Angle, TargetL2Angle);
-        //setTargetAngles(TargetL1Angle, TargetL2Angle);
+        setTargetAngles(TargetL1Angle, TargetL2Angle);
         
 
         // Get moving target from motion profile
@@ -228,20 +251,28 @@ public class AlgaeArmSystem extends SubsystemBase {
         double L1MotorPower = AlgaeArmSettings.LowerJointPID.calculate(CurrentL1Angle, getTargetLowerAngle());
         double L2MotorPower = AlgaeArmSettings.UpperJointPID.calculate(CurrentL2Angle, getTargetUpperAngle());
 
-        // Add the gravity/acceleration compensation power
+        // Feedforward
         if (AlgaeArmSettings.useFeedforward) {
             L1MotorPower += AlgaeArmSettings.L1Feedforward.calculate(getMovingTargetLowerAngle(), getLowerJointTargetAngVel());
             L2MotorPower += AlgaeArmSettings.L2Feedforward.calculate(getMovingTargetUpperAngle(), getUpperJointTargetAngVel());
         }
+
+        // gravity compensation
+        Vector2d entireArmCoM = new Vector2d(
+            (L2Mass * (Math.cos(CurrentL2Angle) * L2CoM + Math.cos(CurrentL1Angle) * AlgaeArmConstants.LowerSegmentLength) + L1Mass * Math.cos(CurrentL1Angle) * L1CoM) / (L1Mass + L2Mass),
+            (L2Mass * (Math.sin(CurrentL2Angle) * L2CoM + Math.sin(CurrentL1Angle) * AlgaeArmConstants.LowerSegmentLength) + L1Mass * Math.sin(CurrentL1Angle) * L1CoM) / (L1Mass + L2Mass)
+        );
+        L1MotorPower += AlgaeArmSettings.lowerJointGravityMult * (Math.cos(entireArmCoM.angle()) * (L1Mass + L2Mass) * 386.088 * entireArmCoM.mag() * (1.0 / (39.37*39.37 * 2.205)) * (lowerGearRatio / (2*Math.PI)) / 4.69); // math after midnight the day of comp
+        L2MotorPower += Math.cos(CurrentL2Angle) * AlgaeArmSettings.upperJointGravityPower;
         
         // Give power to motors
         if (!armStopped) {
-            bottomPivot.setVoltage(toVoltage(L1MotorPower + Math.cos(CurrentL1Angle)*AlgaeArmSettings.temporaryStaticPower));
-            topPivot.setVoltage(toVoltage(L2MotorPower));
+            bottomPivot.set(L1MotorPower);
+            topPivot.set(L2MotorPower);
             clawRoller.set(clawRollerPower);
         } else {
-            bottomPivot.setVoltage(0);
-            topPivot.setVoltage(0);
+            bottomPivot.set(0);
+            topPivot.set(0);
             clawRoller.set(0);
         }
         
@@ -274,10 +305,10 @@ public class AlgaeArmSystem extends SubsystemBase {
             AlgaeArmSettings.maxSpeed = SmartDashboard.getNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
             motionProfile.updateSettings(AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
 
-            AlgaeArmSettings.AlgaeArmLowerJointStartAngle = SmartDashboard.getNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
-            AlgaeArmSettings.AlgaeArmUpperJointStartAngle = SmartDashboard.getNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
+            //AlgaeArmSettings.AlgaeArmLowerJointStartAngle = SmartDashboard.getNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
+            //AlgaeArmSettings.AlgaeArmUpperJointStartAngle = SmartDashboard.getNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
 
-            AlgaeArmSettings.voltageTolerance = SmartDashboard.getNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
+            //AlgaeArmSettings.voltageTolerance = SmartDashboard.getNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
 
             AlgaeArmSettings.useFeedforward = SmartDashboard.getBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
             double lowerJointKS = SmartDashboard.getNumber("Tune Algae lower joint kS", AlgaeArmSettings.L1Feedforward.getKs());
@@ -303,18 +334,21 @@ public class AlgaeArmSystem extends SubsystemBase {
             //AlgaeArmSettings.maxDistanceOutX = SmartDashboard.getNumber("Tune Algae Limit maxDistanceOutX", AlgaeArmSettings.maxDistanceOutX);
             //AlgaeArmSettings.maxDistanceDownY = SmartDashboard.getNumber("Tune Algae Limit maxDistanceDownY", AlgaeArmSettings.maxDistanceDownY);
 
-            AlgaeArmSettings.maxJoystickMovementSpeed = SmartDashboard.getNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
+            //AlgaeArmSettings.maxJoystickMovementSpeed = SmartDashboard.getNumber("Tune Algae Manual Control Speed", AlgaeArmSettings.maxJoystickMovementSpeed);
 
 
-            AlgaeRollerSettings.HoldPower = SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
-            AlgaeRollerSettings.OuttakePower = SmartDashboard.getNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
-            AlgaeRollerSettings.IntakePower = SmartDashboard.getNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
+            //AlgaeRollerSettings.HoldPower = SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.HoldPower);
+            //AlgaeRollerSettings.OuttakePower = SmartDashboard.getNumber("Tune Algae Roller OuttakePower", AlgaeRollerSettings.OuttakePower);
+            //AlgaeRollerSettings.IntakePower = SmartDashboard.getNumber("Tune Algae Roller IntakePower", AlgaeRollerSettings.IntakePower);
             //AlgaeRollerSettings.maxSmartCurrent = (int) SmartDashboard.getNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
             //AlgaeRollerSettings.secondaryCurrentLimit = (int) SmartDashboard.getNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
 
             //clawRollerConfig.smartCurrentLimit(AlgaeRollerSettings.maxSmartCurrent)
                 //.secondaryCurrentLimit(AlgaeRollerSettings.secondaryCurrentLimit);
             //clawRoller.configureAsync(clawRollerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+            AlgaeArmSettings.lowerJointGravityMult = SmartDashboard.getNumber("Tune Algae Lower Joint Gravity", AlgaeArmSettings.lowerJointGravityMult);
+            AlgaeArmSettings.upperJointGravityPower = SmartDashboard.getNumber("Tune Algae Upper Joint Gravity Power", AlgaeArmSettings.upperJointGravityPower);
         }
         
 
@@ -322,8 +356,8 @@ public class AlgaeArmSystem extends SubsystemBase {
         CurrentL1Angle = L1Encoder.getAsDouble();
         CurrentL2Angle = L2Encoder.getAsDouble();
 
-        //benisbestcoder();
-        //public aidansucksatcode(boolean input) { return false; }
+        //benisbestcoder() { return sure; }
+        //public aidansucksatcode() { return false; }
         //parker_is_lowkey_useless();
         //mael_is_hot();
         //BRUCE BRUCE BRUCE BRUCE BRUCE BRUCE
@@ -578,10 +612,6 @@ public class AlgaeArmSystem extends SubsystemBase {
         Target = new Vector2d(Target.x + x * frameTime, Target.y + y * frameTime);
     }
 
-    public void setJointPowers() {
-        
-    }
-
     public void stopArm() {
         Target = getCurrentPoint();
         armStopped = true;
@@ -685,10 +715,5 @@ public class AlgaeArmSystem extends SubsystemBase {
     public void intakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.IntakePower; }
     public void holdRollerClaw() { clawRollerPower = AlgaeRollerSettings.HoldPower; }
     public void outtakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.OuttakePower; }
-
-
-
-
-    
 
 }

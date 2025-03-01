@@ -54,7 +54,7 @@ public class Settings {
         public static double rollRange = 180.0;
 
         public static double intakePower = 0.2;
-        public static double holdPower = 0.0; // TODO add this
+        public static double holdPower = 0.05; 
         public static double outtakePower = -0.5;
         //public static int intakeSmartStallCurrent = 4;
         //public static int intakeSecondaryCurrent = 5;
@@ -71,16 +71,16 @@ public class Settings {
 
     public static class AlgaeArmSettings {
 
-        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(128.5); // 128.5
-        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(146.5); // 146.5
+        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(90); // 128.5
+        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(90); // 146.5
 
         // For motion profile
         public static double maxAcceleration = 0; // in/s^2
         public static double maxDeceleration = 0; // in/s^2
         public static double maxSpeed = 0; // in/s
 
-        public static PIDController LowerJointPID = new PIDController(1, 0, 0); // 3.5, 0, 0
-        public static PIDController UpperJointPID = new PIDController(0.8, 0, 0); // 0.6, 0, 0
+        public static PIDController LowerJointPID = new PIDController(0, 0, 0); // 1, 0, 0
+        public static PIDController UpperJointPID = new PIDController(0, 0, 0); // 0.8, 0, 0
         public static double voltageTolerance =0.05; //tolerance for PID to stop jitter movements and to 0 out voltage
 
         // Feedforward
@@ -89,7 +89,7 @@ public class Settings {
         public static ArmFeedforward L2Feedforward = new ArmFeedforward(0, 0, 0);
 
         // Limits
-        public static double maxAngleLowerJoint = Math.toRadians(120);
+        public static double maxAngleLowerJoint = Math.toRadians(170);
         public static double minAngleLowerJoint = Math.toRadians(10);
         public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
         public static double minAngleUpperJointFromLower = Math.toRadians(-170);
@@ -101,6 +101,12 @@ public class Settings {
 
         public static double maxJoystickMovementSpeed = 12; // in/s
         public static double temporaryStaticPower = 0;
+
+        public static double manualLowerJointSpeed = Math.toRadians(20); // radians per second
+        public static double manualUpperJointSpeed = Math.toRadians(20); // radians per second
+
+        public static double lowerJointGravityMult = 1; // this is way more complicated so just a multiplier (more math is done in subsystem)
+        public static double upperJointGravityPower = 0.0895; // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
 
     }
 
