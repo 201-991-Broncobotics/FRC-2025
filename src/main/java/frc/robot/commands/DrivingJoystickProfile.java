@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.utility.Functions;
 
 public class DrivingJoystickProfile {
@@ -32,18 +33,28 @@ public class DrivingJoystickProfile {
         double turn = rotationInput.getAsDouble();
         double Direction = Math.atan2(forward, strafe);
         double drivePower = Functions.throttleCurve(throttleInput.getAsDouble(), driveCurveMag);
-        if (Math.abs(forward) < 0.03 && Math.abs(strafe) < 0.03 && Math.abs(turn) < 0.03) {
+        if (Math.abs(forward) < 0.05 && Math.abs(strafe) < 0.05 && Math.abs(turn) < 0.05) {
             drivePower = 0;
         }
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
         rotationOutput = Functions.throttleCurve(turn, turnCurveMag) * drivePower;
+
+        SmartDashboard.putNumber("Joystick velX", forwardOutput);
+        SmartDashboard.putNumber("Joystick velY", strafeOutput);
+        SmartDashboard.putNumber("Joystick rotation", rotationOutput);
     }
 
-    public double getForwardOutput() { return forwardOutput; }
-    public double getStrafeOutput() { return strafeOutput; }
-    public double getRotationOutput() { return rotationOutput; }
+    public double getForwardOutput() { 
+        return forwardOutput; 
+    }
+    public double getStrafeOutput() { 
+        return strafeOutput; 
+    }
+    public double getRotationOutput() { 
+        return rotationOutput; 
+    }
 
 
 

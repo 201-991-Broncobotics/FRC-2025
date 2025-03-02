@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -74,6 +75,15 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
 
+        drivingJoystickProfile = new DrivingJoystickProfile(
+                () -> driverFlightHotasOne.getY(), 
+                () -> driverFlightHotasOne.getX(), 
+                () -> -driverFlightHotasOne.getTwist(), 
+                () -> 0.5 + 0.5 * driverFlightHotasOne.getThrottle(), 
+                2, 3);
+
+        new RunCommand(drivingJoystickProfile::update).schedule(); // idk if this works
+
         if (Settings.useFlightStick) {
 
             drivingJoystickProfile = new DrivingJoystickProfile(
@@ -93,6 +103,8 @@ public class RobotContainer {
                 )
                 
             );
+
+            new RunCommand(drivingJoystickProfile::update).schedule(); // idk if this works
 
             // Old Hotas
             /* 
@@ -123,15 +135,17 @@ public class RobotContainer {
 
 
         } else { // Normal Logitech or xbox Controller
-            /* 
+
+            
             drivingProfile = new DrivingProfile(
                 () -> -driverJoystick.getLeftY(), 
                 () -> -driverJoystick.getLeftX(), 
                 () -> -driverJoystick.getRightX(), 
                 () -> 0.5 + 0.5 * driverJoystick.getLeftTriggerAxis(), 
-                3, 3, 5);
-                */
+                2, 2);
 
+            new RunCommand(drivingProfile::update).schedule();
+            
             drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
                 // normal
@@ -205,7 +219,7 @@ public class RobotContainer {
         algaeArmSystem.setDefaultCommand(new RunCommand(algaeArmSystem::updateInTeleOp, algaeArmSystem));
         //climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
-        //Coral Elevator Controls
+        
     }
 
     public Command getAutonomousCommand() {

@@ -3,6 +3,7 @@ package frc.robot.commands;
 import java.util.ArrayList;
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.utility.Functions;
 
 public class DrivingProfile {
@@ -16,18 +17,14 @@ public class DrivingProfile {
 
     private int driveCurveMag, turnCurveMag;
 
-    private int ControlSmoothingTimes = 3;
-    private ArrayList<Double> forwardList, strafeList, turnList;
 
-
-    public DrivingProfile(DoubleSupplier fowardInput, DoubleSupplier strafeInput, DoubleSupplier rotationInput, DoubleSupplier throttleInput, int driveCurveMag, int turnCurveMag, int ControlSmoothingTimes) {
+    public DrivingProfile(DoubleSupplier fowardInput, DoubleSupplier strafeInput, DoubleSupplier rotationInput, DoubleSupplier throttleInput, int driveCurveMag, int turnCurveMag) {
         this.fowardInput = fowardInput;
         this.strafeInput = strafeInput;
         this.rotationInput = rotationInput;
         this.throttleInput = throttleInput;
         this.driveCurveMag = driveCurveMag;
         this.turnCurveMag = turnCurveMag;
-        this.ControlSmoothingTimes = ControlSmoothingTimes;
 
         //update();
 
@@ -38,6 +35,10 @@ public class DrivingProfile {
         double forward = fowardInput.getAsDouble();
         double strafe = strafeInput.getAsDouble();
         double turn = rotationInput.getAsDouble();
+
+        SmartDashboard.putNumber("Controller VelX", forward);
+        SmartDashboard.putNumber("Controller VelY", strafe);
+        SmartDashboard.putNumber("Controller Rotation", turn);
 
         
 
