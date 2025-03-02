@@ -32,10 +32,13 @@ public class DrivingJoystickProfile {
         double turn = rotationInput.getAsDouble();
         double Direction = Math.atan2(forward, strafe);
         double drivePower = Functions.throttleCurve(throttleInput.getAsDouble(), driveCurveMag);
+        if (Math.abs(forward) < 0.03 && Math.abs(strafe) < 0.03 && Math.abs(turn) < 0.03) {
+            drivePower = 0;
+        }
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
-        rotationOutput = Functions.throttleCurve(turn, turnCurveMag);
+        rotationOutput = Functions.throttleCurve(turn, turnCurveMag) * drivePower;
     }
 
     public double getForwardOutput() { return forwardOutput; }

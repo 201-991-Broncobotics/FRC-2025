@@ -73,7 +73,8 @@ public class Functions {
      */
     public static double minMaxValue(double min, double max, double value) {
         if (value > max) return max;
-        else return Math.max(value, min);
+        if (value < min) return min;
+        else return value;
     }
 
     /**
@@ -83,6 +84,11 @@ public class Functions {
      */
     public static double throttleCurve(double value, int mag) {
         return Math.abs(Math.pow(value, mag)) * Math.signum(value); 
+    }
+
+    public static double deadbandValue(double value, double deadband) {
+        if (Math.abs(value) < deadband) return 0.0;
+        else return (1 - deadband) * value + deadband * Math.signum(value);
     }
 
 }

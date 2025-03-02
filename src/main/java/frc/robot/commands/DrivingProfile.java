@@ -29,7 +29,8 @@ public class DrivingProfile {
         this.turnCurveMag = turnCurveMag;
         this.ControlSmoothingTimes = ControlSmoothingTimes;
 
-        update();
+        //update();
+
         
     }
 
@@ -38,17 +39,19 @@ public class DrivingProfile {
         double strafe = strafeInput.getAsDouble();
         double turn = rotationInput.getAsDouble();
 
-        forwardList.add(forward);
-        strafeList.add(strafe);
-        turnList.add(turn);
+        
 
-        if (forwardList.size() > ControlSmoothingTimes) forwardList.remove(0);
-        if (strafeList.size() > ControlSmoothingTimes) strafeList.remove(0);
-        if (turnList.size() > ControlSmoothingTimes) turnList.remove(0);
+        //forwardList.add(forward);
+        //strafeList.add(strafe);
+        //turnList.add(turn);
 
-        forward = forwardList.stream().mapToDouble(a -> a).average().orElse(0.0);
-        strafe = strafeList.stream().mapToDouble(b -> b).average().orElse(0.0);
-        turn = turnList.stream().mapToDouble(c -> c).average().orElse(0.0);
+        //if (forwardList.size() > ControlSmoothingTimes) forwardList.remove(0);
+        //if (strafeList.size() > ControlSmoothingTimes) strafeList.remove(0);
+        //if (turnList.size() > ControlSmoothingTimes) turnList.remove(0);
+
+        //forward = forwardList.stream().mapToDouble(a -> a).average().orElse(0.0);
+        //strafe = strafeList.stream().mapToDouble(b -> b).average().orElse(0.0);
+        //turn = turnList.stream().mapToDouble(c -> c).average().orElse(0.0);
 
         double Direction = Math.atan2(forward, strafe);
         double joystickPower = Math.hypot(forward, strafe);

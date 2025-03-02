@@ -66,21 +66,21 @@ public class Settings {
 
     }
     public static class ClimbingSettings{
-        public static double climbingSpeed = 0.1; // TODO:undo
+        public static double climbingSpeed = 1; // TODO:undo
     }
 
     public static class AlgaeArmSettings {
 
-        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(90); // 128.5
-        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(90); // 146.5
+        public static double AlgaeArmLowerJointStartAngle = Math.toRadians(135.5); // 128.5 // 135.5
+        public static double AlgaeArmUpperJointStartAngle = Math.toRadians(244.2); // 146.5 // 239.3
 
         // For motion profile
         public static double maxAcceleration = 0; // in/s^2
         public static double maxDeceleration = 0; // in/s^2
         public static double maxSpeed = 0; // in/s
 
-        public static PIDController LowerJointPID = new PIDController(0, 0, 0); // 1, 0, 0
-        public static PIDController UpperJointPID = new PIDController(0, 0, 0); // 0.8, 0, 0
+        public static PIDController LowerJointPID = new PIDController(0.5, 0, 0); // 1, 0, 0
+        public static PIDController UpperJointPID = new PIDController(0.4, 0, 0); // 0.8, 0, 0
         public static double voltageTolerance =0.05; //tolerance for PID to stop jitter movements and to 0 out voltage
 
         // Feedforward
@@ -90,30 +90,33 @@ public class Settings {
 
         // Limits
         public static double maxAngleLowerJoint = Math.toRadians(170);
-        public static double minAngleLowerJoint = Math.toRadians(10);
+        public static double minAngleLowerJoint = Math.toRadians(80);
         public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
         public static double minAngleUpperJointFromLower = Math.toRadians(-170);
-        public static double maxDistanceInX = -8; // prevents hitting the hanging mechanism
+        public static double maxAngleUpperJoint = Math.toRadians(245); // 0 being straight
+        public static double minAngleUpperJoint = Math.toRadians(-30);
+        public static double maxDistanceInX = -42; // prevents hitting the hanging mechanism
         public static double maxDistanceOutX = 17.5; // expansion limit 19.5 is at actual limit
         public static double maxDistanceDownY = -AlgaeArmConstants.LowerJointHeight + 2; // prevents hitting the floor
 
         public static double PositionTolerance = 5; // in inches for checking when arm has reached target position
 
-        public static double maxJoystickMovementSpeed = 12; // in/s
+        public static double maxJoystickMovementSpeed = 9; // deg/s
         public static double temporaryStaticPower = 0;
 
-        public static double manualLowerJointSpeed = Math.toRadians(20); // radians per second
-        public static double manualUpperJointSpeed = Math.toRadians(20); // radians per second
+        public static double manualLowerJointSpeed = Math.toRadians(12); // radians per second
+        public static double manualUpperJointSpeed = Math.toRadians(12); // radians per second
 
-        public static double lowerJointGravityMult = 1; // this is way more complicated so just a multiplier (more math is done in subsystem)
-        public static double upperJointGravityPower = 0.0895; // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
+        public static boolean includeGravityCompensation = false;
+        public static double lowerJointGravityMult = 0; // 1 // this is way more complicated so just a multiplier (more math is done in subsystem)
+        public static double upperJointGravityPower = 0.0; // 0.0895 // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
 
     }
 
     public static class AlgaeRollerSettings {
-        public static double IntakePower = 0.3;
-        public static double HoldPower = 0.15;
-        public static double OuttakePower = -0.5;
+        public static double IntakePower = 0.8;
+        public static double HoldPower = 0.25;
+        public static double OuttakePower = -1;
         //public static int maxSmartCurrent = 15;
         //public static int secondaryCurrentLimit = 20;
     }

@@ -37,12 +37,12 @@ import frc.robot.subsystems.CoralClaw;
 import frc.robot.utility.Functions;
 
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband - now 6%
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -103,8 +103,8 @@ public class RobotContainer {
 
             // reset the field-centric heading on left bumper press
             new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-            //new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            //new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
             */
 
 
@@ -117,38 +117,41 @@ public class RobotContainer {
 
             // reset the field-centric heading on left bumper press
             new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-            //new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            //new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
 
 
         } else { // Normal Logitech or xbox Controller
-
+            /* 
             drivingProfile = new DrivingProfile(
                 () -> -driverJoystick.getLeftY(), 
                 () -> -driverJoystick.getLeftX(), 
                 () -> -driverJoystick.getRightX(), 
                 () -> 0.5 + 0.5 * driverJoystick.getLeftTriggerAxis(), 
                 3, 3, 5);
+                */
 
             drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
                 // normal
-                
+                /*
                 drivetrain.applyRequest(() ->
                     drive.withVelocityX(drivingProfile.getStrafeOutput() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(drivingProfile.getForwardOutput() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(drivingProfile.getRotationOutput() * MaxAngularRate) // Drive counterclockwise with negative X (left)
                 )
+                        */
 
                 // old
-                /*
+                
+                // i am being very safe with this
                 drivetrain.applyRequest(() ->
-                    drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                    drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive forward with negative Y (forward)
+                        .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive left with negative X (left)
+                        .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate * (0.6 + 0.4 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive counterclockwise with negative X (left)
                 )
-                 */
+                
             );
 
             driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -166,8 +169,8 @@ public class RobotContainer {
             // reset the field-centric heading on left bumper press
             driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-            //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
         }
 
@@ -178,20 +181,23 @@ public class RobotContainer {
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
         
-        operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::toggleRightBias));
+        //operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::toggleRightBias));
         //operatorJoystick.povUp().onTrue(new InstantCommand(coralArmSystem::toggleCoralArm));
 
         operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
         operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enableArm));
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
+        operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
+        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetStowInCenter));
+
         //operatorJoystick.povDownLeft().onTrue(new InstantCommand(coralClawSystem::toggleLeftDiffyPosition));
         //operatorJoystick.povDownRight().onTrue(new InstantCommand(coralArmSystem::toggleStoreArm));
 
         // temporary Algae Arm controls
-        algaeArmSystem.setControllerInputsOrtho( 
-            () -> -operatorJoystick.getLeftX() * AlgaeArmSettings.maxJoystickMovementSpeed, 
-            () -> -operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed
+        algaeArmSystem.setControllerInputsJoint( 
+            () -> operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed, 
+            () -> operatorJoystick.getRightY() * AlgaeArmSettings.maxJoystickMovementSpeed
         );
 
         //coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem));

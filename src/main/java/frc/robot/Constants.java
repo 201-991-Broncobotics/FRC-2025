@@ -23,10 +23,10 @@ public final class Constants {
 
         // NEOs
         public static final int algaeRollerID = 19;
-        public static final int leftDiffyID = 1;
-        public static final int rightDiffyID = 20;
-        public static final int coralRollerID = 23;
-        public static final int climbingMotorID = 24;
+        public static final int leftDiffyID = 1; // disabled
+        public static final int rightDiffyID = 20; // disabled
+        public static final int coralRollerID = 23; // disabled
+        public static final int climbingMotorID = 23;
     }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;
