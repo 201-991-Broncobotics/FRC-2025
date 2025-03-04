@@ -79,8 +79,8 @@ public class Settings {
         public static double maxDeceleration = 0; // in/s^2
         public static double maxSpeed = 0; // in/s
 
-        public static PIDController LowerJointPID = new PIDController(0.5, 0, 0); // 1, 0, 0
-        public static PIDController UpperJointPID = new PIDController(0.4, 0, 0); // 0.8, 0, 0
+        public static PIDController LowerJointPID = new PIDController(0.55, 0, 0); // 1, 0, 0
+        public static PIDController UpperJointPID = new PIDController(0.45, 0, 0); // 0.8, 0, 0
         public static double voltageTolerance =0.05; //tolerance for PID to stop jitter movements and to 0 out voltage
 
         // Feedforward
@@ -89,8 +89,9 @@ public class Settings {
         public static ArmFeedforward L2Feedforward = new ArmFeedforward(0, 0, 0);
 
         // Limits
-        public static double maxAngleLowerJoint = Math.toRadians(170);
-        public static double minAngleLowerJoint = Math.toRadians(80);
+        public static double maxAngleLowerJoint = Math.toRadians(150);
+        public static double minAngleLowerJoint = Math.toRadians(90);
+        public static double minAngleLowerJointWhenArmOnOtherSide = Math.toRadians(115);
         public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
         public static double minAngleUpperJointFromLower = Math.toRadians(-170);
         public static double maxAngleUpperJoint = Math.toRadians(245); // 0 being straight
@@ -101,22 +102,25 @@ public class Settings {
 
         public static double PositionTolerance = 5; // in inches for checking when arm has reached target position
 
-        public static double maxJoystickMovementSpeed = 9; // deg/s
         public static double temporaryStaticPower = 0;
 
+        // oops I made two sets of these max speeds
+        public static double lowerJointMovementSpeed = 3.5; // deg/s
+        public static double upperJointMovementSpeed = 8.0; // deg/s
         public static double manualLowerJointSpeed = Math.toRadians(12); // radians per second
         public static double manualUpperJointSpeed = Math.toRadians(12); // radians per second
 
         public static boolean includeGravityCompensation = false;
         public static double lowerJointGravityMult = 0; // 1 // this is way more complicated so just a multiplier (more math is done in subsystem)
-        public static double upperJointGravityPower = 0.0; // 0.0895 // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
+        public static double upperJointGravityPower = 0.025; // 0.0895 // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
+        public static double lowerJointGravityPower = 0.05;
 
     }
 
     public static class AlgaeRollerSettings {
-        public static double IntakePower = 0.8;
+        public static double IntakePower = 0.6;
         public static double HoldPower = 0.25;
-        public static double OuttakePower = -1;
+        public static double OuttakePower = -0.8;
         //public static int maxSmartCurrent = 15;
         //public static int secondaryCurrentLimit = 20;
     }

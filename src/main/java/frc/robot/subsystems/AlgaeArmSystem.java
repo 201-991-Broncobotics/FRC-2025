@@ -208,9 +208,13 @@ public class AlgaeArmSystem extends SubsystemBase {
         if (controlOrthogonal) {
             setTargetMoveSpeeds(control1, control2);
         } else {
-            targetL1Angle += AlgaeArmSettings.manualLowerJointSpeed * control1 * frameTime;
-            targetL2Angle += AlgaeArmSettings.manualUpperJointSpeed *control2 * frameTime;
-            targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+            targetL1Angle += AlgaeArmSettings.manualLowerJointSpeed * control1 * AlgaeArmSettings.lowerJointMovementSpeed * frameTime;
+            targetL2Angle += AlgaeArmSettings.manualUpperJointSpeed * control2 * AlgaeArmSettings.upperJointMovementSpeed * frameTime;
+            if (CurrentL2Angle > Math.toRadians(90)) {
+                targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+            } else {
+                targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJointWhenArmOnOtherSide, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+            }
             targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + targetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + targetL1Angle, targetL2Angle);
             targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, targetL2Angle);
             // setTargetAngles(targetL1Angle, targetL2Angle);
@@ -276,6 +280,9 @@ public class AlgaeArmSystem extends SubsystemBase {
             L1MotorPower += AlgaeArmSettings.lowerJointGravityMult * (Math.cos(entireArmCoM.angle()) * (L1Mass + L2Mass) * 386.088 * entireArmCoM.mag() * (1.0 / (39.37*39.37 * 2.205)) * (lowerGearRatio / (2*Math.PI)) / 4.69); // math after midnight the day of comp
             L2MotorPower += Math.cos(CurrentL2Angle) * AlgaeArmSettings.upperJointGravityPower;
         }
+
+        L1MotorPower += AlgaeArmSettings.lowerJointGravityPower * Math.cos(CurrentL1Angle);
+        L2MotorPower += AlgaeArmSettings.upperJointGravityPower * Math.cos(CurrentL2Angle);
         
         // Give power to motors
         if (!armStopped) {
@@ -720,6 +727,10 @@ public class AlgaeArmSystem extends SubsystemBase {
         // initialize encoder suppliers
         L1Encoder = () -> bottomPivot.getPosition().getValueAsDouble() * lowerGearRatio + L1Offset; //I think this should get the currect position but will need testing
         L2Encoder = () -> topPivot.getPosition().getValueAsDouble() * upperGearRatio + L2Offset; // this last part is because I didn't understand the mechanism exactly which really complicated kinematics 
+        CurrentL1Angle = L1Encoder.getAsDouble();
+        CurrentL2Angle = L2Encoder.getAsDouble();
+        targetL1Angle = CurrentL1Angle;
+        targetL2Angle = CurrentL2Angle;
     }
 
 
@@ -736,8 +747,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     // PRESETS - though probably should move these to an algae command 
 
     public void presetFloorForward() {
-        targetL1Angle = Math.toRadians(140);
-        targetL2Angle = Math.toRadians(190);
+        targetL1Angle = Math.toRadians(145);
+        targetL2Angle = Math.toRadians(200);
     }
 
     public void presetStowInCenter() {

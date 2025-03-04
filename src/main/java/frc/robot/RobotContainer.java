@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.commands.AlgaeArmTeleOpCommand;
+import frc.robot.commands.Autonomous;
 import frc.robot.commands.CoralArmTeleOpCommand;
 import frc.robot.commands.DrivingJoystickProfile;
 import frc.robot.commands.DrivingProfile;
@@ -37,8 +38,8 @@ import frc.robot.subsystems.CoralClaw;
 import frc.robot.utility.Functions;
 
 public class RobotContainer {
-    public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    public static double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -152,6 +153,7 @@ public class RobotContainer {
                         .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate * (0.6 + 0.4 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive counterclockwise with negative X (left)
                 )
                 
+                
             );
 
             driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -169,8 +171,8 @@ public class RobotContainer {
             // reset the field-centric heading on left bumper press
             driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-            //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
+            driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
 
         }
 
@@ -196,19 +198,19 @@ public class RobotContainer {
 
         // temporary Algae Arm controls
         algaeArmSystem.setControllerInputsJoint( 
-            () -> operatorJoystick.getLeftY() * AlgaeArmSettings.maxJoystickMovementSpeed, 
-            () -> operatorJoystick.getRightY() * AlgaeArmSettings.maxJoystickMovementSpeed
+            () -> operatorJoystick.getLeftY(), 
+            () -> operatorJoystick.getRightY()
         );
 
         //coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem));
         //coralArmSystem.setDefaultCommand(new RunCommand(coralArmSystem::update, coralArmSystem));
         algaeArmSystem.setDefaultCommand(new RunCommand(algaeArmSystem::updateInTeleOp, algaeArmSystem));
-        //climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
+        climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
         //Coral Elevator Controls
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        return new Autonomous(drivetrain);
     }
 }

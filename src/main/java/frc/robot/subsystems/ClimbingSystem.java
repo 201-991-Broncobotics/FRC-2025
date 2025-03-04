@@ -37,6 +37,8 @@ public class ClimbingSystem extends SubsystemBase {
     }
 
     public void update() {
+        if (climbingMotor.getEncoder().getPosition() > 85 && ClimbingPower > 0) ClimbingPower = 0;
+        if (climbingMotor.getEncoder().getPosition() < 0 && ClimbingPower < 0) ClimbingPower = 0;
         climbingMotor.set(ClimbingPower);
     }
 
@@ -53,11 +55,11 @@ public class ClimbingSystem extends SubsystemBase {
     }
 
     public void StartClimbing() {
-        ClimbingPower = climbingSpeed;
+        ClimbingPower = -climbingSpeed;
     }
 
     public void StartUnclimbing() {
-        ClimbingPower = -climbingSpeed;
+        ClimbingPower = climbingSpeed;
     }
 
     public void StopClimbing() {
