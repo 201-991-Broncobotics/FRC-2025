@@ -1,9 +1,6 @@
 package frc.robot.commands;
 
-import java.util.ArrayList;
 import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.utility.Functions;
 
 public class DrivingProfiles {
@@ -17,10 +14,8 @@ public class DrivingProfiles {
     private double forwardOutput = 0, strafeOutput = 0, rotationOutput = 0;
 
     private int controllerDriveCurveMag, controllerTurnCurveMag;
-
     private int joystickDriveCurveMag, joystickTurnCurveMag;
 
-    private boolean controllerInUse, JoystickInUse;
     private boolean preferController = true;
 
     private final double ControllerDeadband = 0.05, JoystickDeadband = 0.05;
@@ -28,7 +23,6 @@ public class DrivingProfiles {
 
     public DrivingProfiles(boolean PreferController) {
         this.preferController = PreferController;
-        
     }
 
     public DrivingProfiles() {
@@ -55,25 +49,36 @@ public class DrivingProfiles {
     }
 
     public void update() {
-        
+        if (preferController) {
+            if (updateController()) return;
+            else if (updateJoystick()) return;
+        } else {
+            if (updateJoystick()) return;
+            else if (updateController()) return;
+        }
+        forwardOutput = 0;
+        strafeOutput = 0;
+        rotationOutput = 0;
     }
 
 
-    private void updateController() {
+    private boolean updateController() {
         double forward = fowardControllerInput.getAsDouble();
         double strafe = strafeControllerInput.getAsDouble();
-        double turn = rotationControllerInput.getAsDouble();
+        double turn = Functions.deadbandValue(rotationControllerInput.getAsDouble(), ControllerDeadband);
 
         double Direction = Math.atan2(forward, strafe);
-        double joystickPower = Math.hypot(forward, strafe);
+        double joystickPower = Functions.deadbandValue(Math.hypot(forward, strafe), ControllerDeadband);
         double drivePower = Functions.throttleCurve(joystickPower, controllerDriveCurveMag) * throttleControllerInput.getAsDouble();
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
         rotationOutput = Functions.throttleCurve(turn, controllerTurnCurveMag);
+
+        return !(joystickPower == 0.0 && turn == 0.0); // returns true if in use
     }
 
-    private void updateJoystick() {
+    private boolean updateJoystick() {
         double forward = fowardJoystickInput.getAsDouble();
         double strafe = strafeJoystickInput.getAsDouble();
         double turn = Functions.deadbandValue(rotationJoystickInput.getAsDouble(), JoystickDeadband);
@@ -86,15 +91,12 @@ public class DrivingProfiles {
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
         rotationOutput = Functions.throttleCurve(turn, joystickTurnCurveMag) * drivePower;
+
+        return (drivePower != 0.0); // returns true if in use
     }
-
-
-
 
     public double getForwardOutput() { return forwardOutput; }
     public double getStrafeOutput() { return strafeOutput; }
     public double getRotationOutput() { return rotationOutput; }
-
-    
 
 }

@@ -12,8 +12,6 @@ public class Settings {
 
     public static boolean tuningTelemetryEnabled = true;
 
-    public static boolean useFlightStick = false;
-
     public static class CoralSystemSettings {
         public static double kSE = 0.0001;
         public static double kGE = 0.00;

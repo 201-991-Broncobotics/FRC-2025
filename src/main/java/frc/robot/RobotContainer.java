@@ -14,7 +14,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -22,14 +21,12 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.commands.AlgaeArmTeleOpCommand;
 import frc.robot.commands.Autonomous;
 import frc.robot.commands.CoralArmTeleOpCommand;
-import frc.robot.commands.DrivingJoystickProfile;
-import frc.robot.commands.DrivingProfile;
+import frc.robot.commands.DrivingProfiles;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeArmSystem;
 import frc.robot.subsystems.ClimbingSystem;
@@ -53,9 +50,7 @@ public class RobotContainer {
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
     private final Joystick driverFlightHotasOne = new Joystick(2);
 
-    private DrivingProfile drivingProfile;
-    private DrivingJoystickProfile drivingJoystickProfile;
-    
+    private DrivingProfiles drivingProfile;
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
@@ -76,119 +71,80 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
 
-        drivingJoystickProfile = new DrivingJoystickProfile(
-                () -> driverFlightHotasOne.getY(), 
-                () -> driverFlightHotasOne.getX(), 
-                () -> -driverFlightHotasOne.getTwist(), 
-                () -> 0.5 + 0.5 * driverFlightHotasOne.getThrottle(), 
-                2, 3);
+        drivingProfile = new DrivingProfiles();
 
-        new RunCommand(drivingJoystickProfile::update).schedule(); // idk if this works
+        drivingProfile.setUpControllerInputs(
+            () -> -driverJoystick.getLeftY(), 
+            () -> driverJoystick.getLeftX(), 
+            () -> -driverJoystick.getRightX(), 
+            () -> 0.5 + 0.5 * driverJoystick.getLeftTriggerAxis(), 
+            2, 2
+        );
 
-        if (Settings.useFlightStick) {
+        drivingProfile.setUpJoystickInputs(
+            () -> -driverFlightHotasOne.getY(), 
+            () -> driverFlightHotasOne.getX(), 
+            () -> -driverFlightHotasOne.getTwist(), 
+            () -> (-driverFlightHotasOne.getThrottle()+1)/2, 
+            2, 2
+        );
 
-            drivingJoystickProfile = new DrivingJoystickProfile(
-                () -> driverFlightHotasOne.getY(), 
-                () -> driverFlightHotasOne.getX(), 
-                () -> -driverFlightHotasOne.getTwist(), 
-                () -> 0.5 + 0.5 * driverFlightHotasOne.getThrottle(), 
-                2, 3);
+        new RunCommand(drivingProfile::update).schedule();
 
-            drivetrain.setDefaultCommand( // Flight Stick
+        drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
-                // normal
-                drivetrain.applyRequest(() ->
-                    drive.withVelocityX(drivingJoystickProfile.getStrafeOutput() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(drivingJoystickProfile.getForwardOutput() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(drivingJoystickProfile.getRotationOutput() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-                )
-                
-            );
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(drivingProfile.getForwardOutput() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-drivingProfile.getStrafeOutput() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(drivingProfile.getRotationOutput() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
 
-            new RunCommand(drivingJoystickProfile::update).schedule(); // idk if this works
-
-            // Old Hotas
+            // old
             /* 
-            new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake));
-            new JoystickButton(driverFlightHotasOne, 6).whileTrue(drivetrain.applyRequest(() ->
-                point.withModuleDirection(new Rotation2d(-driverFlightHotasOne.getY(), -driverFlightHotasOne.getX()))
-            ));
-
-            // reset the field-centric heading on left bumper press
-            new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-            new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive forward with negative Y (forward)
+                    .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive left with negative X (left)
+                    .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate * (0.6 + 0.4 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive counterclockwise with negative X (left)
+            )
             */
-
-
-
-            // new hotas
-            new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake));
-            new JoystickButton(driverFlightHotasOne, 6).whileTrue(drivetrain.applyRequest(() ->
-                point.withModuleDirection(new Rotation2d(driverFlightHotasOne.getY(), driverFlightHotasOne.getX()))
-            ));
-
-            // reset the field-centric heading on left bumper press
-            new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-            new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-            new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-
-
-
-        } else { // Normal Logitech or xbox Controller
+        );
 
             
-            drivingProfile = new DrivingProfile(
-                () -> -driverJoystick.getLeftY(), 
-                () -> -driverJoystick.getLeftX(), 
-                () -> -driverJoystick.getRightX(), 
-                () -> 0.5 + 0.5 * driverJoystick.getLeftTriggerAxis(), 
-                2, 2);
+        // DRIVER CONTROLS
 
-            new RunCommand(drivingProfile::update).schedule();
-            
-            drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-                // normal
-                /*
-                drivetrain.applyRequest(() ->
-                    drive.withVelocityX(drivingProfile.getStrafeOutput() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(drivingProfile.getForwardOutput() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(drivingProfile.getRotationOutput() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-                )
-                        */
+        driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
+        new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake));
 
-                // old
-                
-                // i am being very safe with this
-                drivetrain.applyRequest(() ->
-                    drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive forward with negative Y (forward)
-                        .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive left with negative X (left)
-                        .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate * (0.6 + 0.4 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive counterclockwise with negative X (left)
-                )
-                
-                
-            );
+        driverJoystick.a().whileTrue(drivetrain.applyRequest(() ->
+            point.withModuleDirection(new Rotation2d(-driverJoystick.getLeftY(), -driverJoystick.getLeftX()))
+        ));
+        new JoystickButton(driverFlightHotasOne, 6).whileTrue(drivetrain.applyRequest(() ->
+            point.withModuleDirection(new Rotation2d(driverFlightHotasOne.getY(), driverFlightHotasOne.getX()))
+        ));
 
-            driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
-            driverJoystick.a().whileTrue(drivetrain.applyRequest(() ->
-                point.withModuleDirection(new Rotation2d(-driverJoystick.getLeftY(), -driverJoystick.getLeftX()))
-            ));
+        // reset the field-centric heading on left bumper press
+        driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-            // Run SysId routines when holding back/start and X/Y.
-            // Note that each routine should be run exactly once in a single log.
-            driverJoystick.back().and(driverJoystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-            driverJoystick.back().and(driverJoystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-            driverJoystick.start().and(driverJoystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-            driverJoystick.start().and(driverJoystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-            
-            // reset the field-centric heading on left bumper press
-            driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        // Climbing
+        driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
+        driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
 
-            driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
-            driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
+        new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+        new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
-        }
+        // Run SysId routines when holding back/start and X/Y.
+        // Note that each routine should be run exactly once in a single log.
+        driverJoystick.back().and(driverJoystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        driverJoystick.back().and(driverJoystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        driverJoystick.start().and(driverJoystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        driverJoystick.start().and(driverJoystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        
+
+
+
+
+        // OPERATOR CONTROLS
 
         //operatorJoystick.leftBumper().onTrue(runElevatorUp);
         //operatorJoystick.leftTrigger().onTrue(runElevatorDown);
