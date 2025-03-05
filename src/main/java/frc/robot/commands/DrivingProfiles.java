@@ -71,6 +71,8 @@ public class DrivingProfiles {
         double joystickPower = Functions.deadbandValue(Math.hypot(forward, strafe), ControllerDeadband);
         double drivePower = Functions.throttleCurve(joystickPower, controllerDriveCurveMag) * throttleControllerInput.getAsDouble();
 
+        if (joystickPower == 0.0) drivePower = 0; // just to make sure
+
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
         rotationOutput = Functions.throttleCurve(turn, controllerTurnCurveMag);
@@ -82,17 +84,18 @@ public class DrivingProfiles {
         double forward = fowardJoystickInput.getAsDouble();
         double strafe = strafeJoystickInput.getAsDouble();
         double turn = Functions.deadbandValue(rotationJoystickInput.getAsDouble(), JoystickDeadband);
+
         double Direction = Math.atan2(forward, strafe);
-        double drivePower = Functions.throttleCurve(throttleJoystickInput.getAsDouble(), joystickDriveCurveMag);
-        if (Functions.deadbandValue(Math.hypot(forward, strafe), JoystickDeadband) == 0.0) {
-            drivePower = 0;
-        }
+        double joystickPower = Functions.deadbandValue(Math.hypot(forward, strafe), JoystickDeadband);
+        double drivePower = Functions.throttleCurve(joystickPower, joystickDriveCurveMag) * throttleJoystickInput.getAsDouble();
+
+        if (joystickPower == 0.0) drivePower = 0; // just to make sure
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
         rotationOutput = Functions.throttleCurve(turn, joystickTurnCurveMag) * drivePower;
 
-        return (drivePower != 0.0); // returns true if in use
+        return !(joystickPower == 0.0 && turn == 0.0); // returns true if in use
     }
 
     public double getForwardOutput() { return forwardOutput; }

@@ -235,6 +235,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        // Also update pigeon acceleration and rotations
+        double xAcceleration = getPigeon2().getAccelerationX().getValueAsDouble();
     }
 
     private void startSimThread() {
