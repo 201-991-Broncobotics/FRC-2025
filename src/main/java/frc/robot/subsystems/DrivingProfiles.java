@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
@@ -7,18 +7,19 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utility.Functions;
 
+/**
+ * This is to normalize driving and make it easier for Mael to not drive into people. 
+ * It also determines which driver controller/joystick should take priority and allows them to be used interchangeably
+ */
 public class DrivingProfiles extends SubsystemBase {
-
-    // this is to normalize driving and make it easier for Mael to not drive into people
-
 
     private DoubleSupplier fowardControllerInput, strafeControllerInput, rotationControllerInput, throttleControllerInput;
     private DoubleSupplier fowardJoystickInput, strafeJoystickInput, rotationJoystickInput, throttleJoystickInput;
 
     private double forwardOutput = 0, strafeOutput = 0, rotationOutput = 0;
 
-    private int controllerDriveCurveMag, controllerTurnCurveMag;
-    private int joystickDriveCurveMag, joystickTurnCurveMag;
+    private double controllerDriveCurveMag, controllerTurnCurveMag;
+    private double joystickDriveCurveMag, joystickTurnCurveMag;
 
     private boolean preferController = true;
 
@@ -37,7 +38,7 @@ public class DrivingProfiles extends SubsystemBase {
     }
 
 
-    public void setUpControllerInputs(DoubleSupplier fowardInput, DoubleSupplier strafeInput, DoubleSupplier rotationInput, DoubleSupplier throttleInput, int driveCurveMag, int turnCurveMag) {
+    public void setUpControllerInputs(DoubleSupplier fowardInput, DoubleSupplier strafeInput, DoubleSupplier rotationInput, DoubleSupplier throttleInput, double driveCurveMag, double turnCurveMag) {
         this.fowardControllerInput = fowardInput;
         this.strafeControllerInput = strafeInput;
         this.rotationControllerInput = rotationInput;
@@ -46,7 +47,7 @@ public class DrivingProfiles extends SubsystemBase {
         this.controllerTurnCurveMag = turnCurveMag;
     }
 
-    public void setUpJoystickInputs(DoubleSupplier fowardInput, DoubleSupplier strafeInput, DoubleSupplier rotationInput, DoubleSupplier throttleInput, int driveCurveMag, int turnCurveMag) {
+    public void setUpJoystickInputs(DoubleSupplier fowardInput, DoubleSupplier strafeInput, DoubleSupplier rotationInput, DoubleSupplier throttleInput, double driveCurveMag, double turnCurveMag) {
         this.fowardJoystickInput = fowardInput;
         this.strafeJoystickInput = strafeInput;
         this.rotationJoystickInput = rotationInput;

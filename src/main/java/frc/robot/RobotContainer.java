@@ -26,13 +26,13 @@ import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.commands.AlgaeArmTeleOpCommand;
 import frc.robot.commands.Autonomous;
 import frc.robot.commands.CoralArmTeleOpCommand;
-import frc.robot.commands.DrivingProfiles;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeArmSystem;
 import frc.robot.subsystems.ClimbingSystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralArmSystem;
 import frc.robot.subsystems.CoralClaw;
+import frc.robot.subsystems.DrivingProfiles;
 import frc.robot.utility.Functions;
 
 public class RobotContainer {
@@ -84,7 +84,7 @@ public class RobotContainer {
             () -> -driverFlightHotasOne.getX(), 
             () -> -driverFlightHotasOne.getRawAxis(5), 
             () -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2), 
-            2, 2
+            1, 2
         );
 
         drivingProfile.giveJoystickForTelemetry(driverFlightHotasOne);

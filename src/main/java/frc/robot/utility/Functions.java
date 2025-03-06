@@ -82,8 +82,8 @@ public class Functions {
      * @param value input
      * @param mag power of the curve
      */
-    public static double throttleCurve(double value, int mag) {
-        return Math.abs(Math.pow(value, mag)) * Math.signum(value); 
+    public static double throttleCurve(double value, double mag) {
+        return Math.pow(Math.abs(value), Math.abs(mag)) * Math.signum(value); 
     }
 
     public static double deadbandValue(double value, double deadband) {
