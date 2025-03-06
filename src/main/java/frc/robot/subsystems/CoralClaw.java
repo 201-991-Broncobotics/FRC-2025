@@ -117,6 +117,9 @@ public class CoralClaw extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
+
+        /* 
+
         // read PID coefficients from SmartDashboard
         if (Settings.tuningTelemetryEnabled) {
             //CoralClawSettings.kP = SmartDashboard.getNumber("Tune Coral Claw kP", CoralClawSettings.kP);
@@ -152,6 +155,8 @@ public class CoralClaw extends SubsystemBase {
         //SmartDashboard.putNumber("CoralClaw Right Motor Power", rmotor.getAppliedOutput()); // may or may not be power
         SmartDashboard.putNumber("CoralClaw Left Motor Power", lmotor.getAppliedOutput());
         SmartDashboard.putNumber("CoralClaw Roller Power", RollerPower);
+
+        */
 
     }
 

@@ -120,6 +120,8 @@ public class CoralArmSystem extends SubsystemBase {
     @Override
     public void periodic() {
        // TargetArmAngle= SmartDashboard.getNumber("TargetAngle", CurrentArmAngle);
+
+       /* temporary commented out because it a little bit nonexistant and it lessens clutter on dashboard
         
         //Smart Dashboard updates
         SmartDashboard.putNumber("Elevator", CurrentElevatorHeight);
@@ -144,7 +146,7 @@ public class CoralArmSystem extends SubsystemBase {
             SmartDashboard.getNumber("Arm kVE", CoralSystemSettings.kVE));
         }
         
-
+        */
         
     }
     public boolean atPosition(){

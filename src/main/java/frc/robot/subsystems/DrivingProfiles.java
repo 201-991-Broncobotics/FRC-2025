@@ -118,7 +118,6 @@ public class DrivingProfiles extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (rotationJoystickInput != null) SmartDashboard.putNumber("Joystick rotation value", rotationJoystickInput.getAsDouble());
 
         SmartDashboard.putNumber("Pigeon accel X", gyroData.accelX);
         SmartDashboard.putNumber("Pigeon accel Y", gyroData.accelY);
