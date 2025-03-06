@@ -41,7 +41,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband - now 6%
+            .withDeadband(MaxSpeed * 0.02).withRotationalDeadband(MaxAngularRate * 0.02) // Add a 10% deadband - now 6%
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -50,7 +50,7 @@ public class RobotContainer {
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
     private final Joystick driverFlightHotasOne = new Joystick(2);
 
-    private DrivingProfiles drivingProfile;
+    private final DrivingProfiles drivingProfile = new DrivingProfiles();
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
@@ -71,8 +71,6 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
 
-        drivingProfile = new DrivingProfiles();
-
         drivingProfile.setUpControllerInputs(
             () -> -driverJoystick.getLeftY(), 
             () -> driverJoystick.getLeftX(), 
@@ -82,14 +80,16 @@ public class RobotContainer {
         );
 
         drivingProfile.setUpJoystickInputs(
-            () -> -driverFlightHotasOne.getY(), 
-            () -> driverFlightHotasOne.getX(), 
-            () -> -driverFlightHotasOne.getTwist(), 
-            () -> (-driverFlightHotasOne.getThrottle()+1)/2, 
+            () -> driverFlightHotasOne.getY(), 
+            () -> -driverFlightHotasOne.getX(), 
+            () -> -driverFlightHotasOne.getRawAxis(5), 
+            () -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2), 
             2, 2
         );
 
-        new RunCommand(drivingProfile::update).schedule();
+        drivingProfile.giveJoystickForTelemetry(driverFlightHotasOne);
+
+        drivingProfile.setDefaultCommand(new RunCommand(drivingProfile::update, drivingProfile));
 
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically

@@ -1,9 +1,13 @@
 package frc.robot.commands;
 
 import java.util.function.DoubleSupplier;
+
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utility.Functions;
 
-public class DrivingProfiles {
+public class DrivingProfiles extends SubsystemBase {
 
     // this is to normalize driving and make it easier for Mael to not drive into people
 
@@ -20,9 +24,12 @@ public class DrivingProfiles {
 
     private final double ControllerDeadband = 0.05, JoystickDeadband = 0.05;
 
+    private Joystick joystick;
+
 
     public DrivingProfiles(boolean PreferController) {
         this.preferController = PreferController;
+
     }
 
     public DrivingProfiles() {
@@ -93,7 +100,7 @@ public class DrivingProfiles {
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
-        rotationOutput = Functions.throttleCurve(turn, joystickTurnCurveMag) * drivePower;
+        rotationOutput = Functions.throttleCurve(turn, joystickTurnCurveMag) * throttleJoystickInput.getAsDouble();
 
         return !(joystickPower == 0.0 && turn == 0.0); // returns true if in use
     }
@@ -101,5 +108,26 @@ public class DrivingProfiles {
     public double getForwardOutput() { return forwardOutput; }
     public double getStrafeOutput() { return strafeOutput; }
     public double getRotationOutput() { return rotationOutput; }
+
+    public void giveJoystickForTelemetry(Joystick joystick) {
+        this.joystick = joystick;
+    }
+
+
+    @Override
+    public void periodic() {
+        if (rotationJoystickInput != null) SmartDashboard.putNumber("Joystick rotation value", rotationJoystickInput.getAsDouble());
+
+        if (joystick != null) {
+            SmartDashboard.putNumber("axis 0", joystick.getRawAxis(0));
+            SmartDashboard.putNumber("axis 1", joystick.getRawAxis(1));
+            SmartDashboard.putNumber("axis 2", joystick.getRawAxis(2));
+            SmartDashboard.putNumber("axis 3", joystick.getRawAxis(3));
+            SmartDashboard.putNumber("axis 4", joystick.getRawAxis(4));
+            SmartDashboard.putNumber("axis 5", joystick.getRawAxis(5));
+        }
+        
+
+    }
 
 }
