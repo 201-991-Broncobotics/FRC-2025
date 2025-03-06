@@ -236,8 +236,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        // Also update pigeon acceleration and rotations
-        double xAcceleration = getPigeon2().getAccelerationX().getValueAsDouble();
+        // Also update pigeon acceleration and rotation 
+        gyroData.accelX = getPigeon2().getAccelerationX().getValueAsDouble();
+        gyroData.accelY = getPigeon2().getAccelerationY().getValueAsDouble();
+        gyroData.accelZ = getPigeon2().getAccelerationZ().getValueAsDouble();
+
+        gyroData.pitch = getPigeon2().getPitch().getValueAsDouble();
+        gyroData.roll = getPigeon2().getRoll().getValueAsDouble();
+        gyroData.yaw = getPigeon2().getYaw().getValueAsDouble();
+
+        gyroData.angVelX = getPigeon2().getAngularVelocityXDevice().getValueAsDouble();
+        gyroData.angVelY = getPigeon2().getAngularVelocityYDevice().getValueAsDouble();
+        gyroData.angVelZ = getPigeon2().getAngularVelocityZDevice().getValueAsDouble();
     }
 
     private void startSimThread() {
@@ -287,5 +297,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+    }
+
+
+    public static class gyroData {
+        public static double accelX = 0;
+        public static double accelY = 0;
+        public static double accelZ = 0;
+        public static double pitch = 0;
+        public static double roll = 0;
+        public static double yaw = 0;
+        public static double angVelX = 0;
+        public static double angVelY = 0;
+        public static double angVelZ = 0;
     }
 }

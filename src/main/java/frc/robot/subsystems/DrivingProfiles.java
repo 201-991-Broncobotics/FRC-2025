@@ -5,6 +5,7 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.CommandSwerveDrivetrain.gyroData;
 import frc.robot.utility.Functions;
 
 /**
@@ -119,16 +120,16 @@ public class DrivingProfiles extends SubsystemBase {
     public void periodic() {
         if (rotationJoystickInput != null) SmartDashboard.putNumber("Joystick rotation value", rotationJoystickInput.getAsDouble());
 
-        if (joystick != null) {
-            SmartDashboard.putNumber("axis 0", joystick.getRawAxis(0));
-            SmartDashboard.putNumber("axis 1", joystick.getRawAxis(1));
-            SmartDashboard.putNumber("axis 2", joystick.getRawAxis(2));
-            SmartDashboard.putNumber("axis 3", joystick.getRawAxis(3));
-            SmartDashboard.putNumber("axis 4", joystick.getRawAxis(4));
-            SmartDashboard.putNumber("axis 5", joystick.getRawAxis(5));
-        }
+        SmartDashboard.putNumber("Pigeon accel X", gyroData.accelX);
+        SmartDashboard.putNumber("Pigeon accel Y", gyroData.accelY);
+        SmartDashboard.putNumber("Pigeon accel Z", gyroData.accelZ);
+        SmartDashboard.putNumber("Pigeon pitch", gyroData.pitch);
+        SmartDashboard.putNumber("Pigeon roll", gyroData.roll);
+        SmartDashboard.putNumber("Pigeon yaw", gyroData.yaw);
+        SmartDashboard.putNumber("Pigeon angVel X", gyroData.angVelX);
+        SmartDashboard.putNumber("Pigeon angVel Y", gyroData.angVelY);
+        SmartDashboard.putNumber("Pigeon angVel Z", gyroData.angVelZ);
         
-
     }
 
 }
