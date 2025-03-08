@@ -24,7 +24,10 @@ public class DrivingProfiles extends SubsystemBase {
 
     private boolean preferController = true;
 
-    private final double ControllerDeadband = 0.05, JoystickDeadband = 0.05;
+    private final double ControllerDeadband = 0.05, JoystickDeadband = 0.08;
+
+    private double presetThrottleControl = 0.25;
+    private boolean useThrottlePreset = false;
 
     private Joystick joystick;
 
@@ -75,16 +78,19 @@ public class DrivingProfiles extends SubsystemBase {
         double forward = fowardControllerInput.getAsDouble();
         double strafe = strafeControllerInput.getAsDouble();
         double turn = Functions.deadbandValue(rotationControllerInput.getAsDouble(), ControllerDeadband);
+        double throttle = throttleControllerInput.getAsDouble();
+
+        if (useThrottlePreset) throttle = presetThrottleControl;
 
         double Direction = Math.atan2(forward, strafe);
         double joystickPower = Functions.deadbandValue(Math.hypot(forward, strafe), ControllerDeadband);
-        double drivePower = Functions.throttleCurve(joystickPower, controllerDriveCurveMag) * throttleControllerInput.getAsDouble();
+        double drivePower = Functions.throttleCurve(joystickPower, controllerDriveCurveMag) * throttle;
 
         if (joystickPower == 0.0) drivePower = 0; // just to make sure
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
-        rotationOutput = Functions.throttleCurve(turn, controllerTurnCurveMag);
+        rotationOutput = Functions.throttleCurve(turn, controllerTurnCurveMag) * throttle;
 
         return !(joystickPower == 0.0 && turn == 0.0); // returns true if in use
     }
@@ -93,16 +99,19 @@ public class DrivingProfiles extends SubsystemBase {
         double forward = fowardJoystickInput.getAsDouble();
         double strafe = strafeJoystickInput.getAsDouble();
         double turn = Functions.deadbandValue(rotationJoystickInput.getAsDouble(), JoystickDeadband);
+        double throttle = throttleJoystickInput.getAsDouble();
+
+        if (useThrottlePreset) throttle = presetThrottleControl;
 
         double Direction = Math.atan2(forward, strafe);
         double joystickPower = Functions.deadbandValue(Math.hypot(forward, strafe), JoystickDeadband);
-        double drivePower = Functions.throttleCurve(joystickPower, joystickDriveCurveMag) * throttleJoystickInput.getAsDouble();
+        double drivePower = Functions.throttleCurve(joystickPower, joystickDriveCurveMag) * throttle;
 
         if (joystickPower == 0.0) drivePower = 0; // just to make sure
 
         forwardOutput = Math.sin(Direction) * drivePower;
         strafeOutput = Math.cos(Direction) * drivePower;
-        rotationOutput = Functions.throttleCurve(turn, joystickTurnCurveMag) * throttleJoystickInput.getAsDouble();
+        rotationOutput = Functions.throttleCurve(turn, joystickTurnCurveMag) * throttle;
 
         return !(joystickPower == 0.0 && turn == 0.0); // returns true if in use
     }
@@ -110,6 +119,11 @@ public class DrivingProfiles extends SubsystemBase {
     public double getForwardOutput() { return forwardOutput; }
     public double getStrafeOutput() { return strafeOutput; }
     public double getRotationOutput() { return rotationOutput; }
+
+
+    public void enableSlowDown() { useThrottlePreset = true; }
+    public void disableSlowDown() { useThrottlePreset = false; }
+
 
     public void giveJoystickForTelemetry(Joystick joystick) {
         this.joystick = joystick;

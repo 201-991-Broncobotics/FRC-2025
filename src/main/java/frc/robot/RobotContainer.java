@@ -85,7 +85,7 @@ public class RobotContainer {
             () -> -driverFlightHotasOne.getRawAxis(5), 
             () -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2), 
             1, 2
-        );
+        );  
 
         drivingProfile.giveJoystickForTelemetry(driverFlightHotasOne);
 
@@ -113,14 +113,17 @@ public class RobotContainer {
         // DRIVER CONTROLS
 
         driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
-        new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake));
+        new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake)); // d button on throttle side
 
+        // controls for checking if the wheels are aligned
         driverJoystick.a().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-driverJoystick.getLeftY(), -driverJoystick.getLeftX()))
         ));
-        new JoystickButton(driverFlightHotasOne, 6).whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(driverFlightHotasOne.getY(), driverFlightHotasOne.getX()))
+        new JoystickButton(driverFlightHotasOne, 15).whileTrue(drivetrain.applyRequest(() ->
+            point.withModuleDirection(new Rotation2d(-1, 0)) // mouseclick button on throttle side
         ));
+
+        new JoystickButton(driverFlightHotasOne, 6).onTrue(new InstantCommand(drivingProfile::enableSlowDown)).onFalse(new InstantCommand(drivingProfile::disableSlowDown));
 
         // reset the field-centric heading on left bumper press
         driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
