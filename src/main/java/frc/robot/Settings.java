@@ -88,8 +88,8 @@ public class Settings {
 
         // Limits
         public static double maxAngleLowerJoint = Math.toRadians(150);
-        public static double minAngleLowerJoint = Math.toRadians(90);
-        public static double minAngleLowerJointWhenArmOnOtherSide = Math.toRadians(115);
+        public static double minAngleLowerJoint = Math.toRadians(45); // 90
+        public static double minAngleLowerJointWhenArmOnOtherSide = Math.toRadians(90); // 115
         public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
         public static double minAngleUpperJointFromLower = Math.toRadians(-170);
         public static double maxAngleUpperJoint = Math.toRadians(245); // 0 being straight
@@ -117,7 +117,7 @@ public class Settings {
 
     public static class AlgaeRollerSettings {
         public static double IntakePower = 0.6;
-        public static double HoldPower = 0.25;
+        public static double HoldPower = 0.1;
         public static double OuttakePower = -0.8;
         //public static int maxSmartCurrent = 15;
         //public static int secondaryCurrentLimit = 20;

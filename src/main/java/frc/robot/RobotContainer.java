@@ -10,10 +10,13 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -63,7 +66,14 @@ public class RobotContainer {
     //DoubleSupplier sup = () -> operatorJoystick.getRightY();
     //public final CoralArmSystem coralArmSystem = new CoralArmSystem(sup);
 
+    //pathplanner auto
+    private final SendableChooser<Command> autoChooser; 
+
     public RobotContainer() {
+        //selecting the pathplanner auto you want from dashboard + setting default
+        autoChooser = AutoBuilder.buildAutoChooser("Test");
+        SmartDashboard.putData("Auto Mode", autoChooser);
+
         configureBindings();
     }
 
@@ -184,6 +194,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return new Autonomous(drivetrain);
+        return autoChooser.getSelected();
     }
 }
