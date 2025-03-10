@@ -180,8 +180,12 @@ public class AlgaeArmSystem extends SubsystemBase {
             //SmartDashboard.putNumber("Tune Algae Roller maxSmartCurrent", AlgaeRollerSettings.maxSmartCurrent);
             //SmartDashboard.putNumber("Tune Algae Roller HoldPower", AlgaeRollerSettings.secondaryCurrentLimit);
 
+            SmartDashboard.putBoolean("Tune Algae use Gravity compensation", AlgaeArmSettings.includeGravityCompensation);
             SmartDashboard.putNumber("Tune Algae Lower Joint Gravity", AlgaeArmSettings.lowerJointGravityMult);
             SmartDashboard.putNumber("Tune Algae Upper Joint Gravity Power", AlgaeArmSettings.upperJointGravityPower);
+
+            SmartDashboard.putBoolean("Tune Algae use acceleration compensation", AlgaeArmSettings.includeAccelerationCompensation);
+            SmartDashboard.putNumber("Tune Algae acceleration mult", AlgaeArmSettings.accelerationMult);
         }
     }
 
@@ -281,6 +285,11 @@ public class AlgaeArmSystem extends SubsystemBase {
             L2MotorPower += Math.cos(CurrentL2Angle) * AlgaeArmSettings.upperJointGravityPower;
         }
 
+        if (AlgaeArmSettings.includeAccelerationCompensation) {
+            L1MotorPower += (AlgaeArmSettings.lowerJointGravityMult * (Math.sin(entireArmCoM.angle()) * (L1Mass + L2Mass) * CommandSwerveDrivetrain.gyroData.accelX * 386.088 * entireArmCoM.mag() * (1.0 / (39.37*39.37 * 2.205)) * (lowerGearRatio / (2*Math.PI)) / 4.69)) * AlgaeArmSettings.accelerationMult; // math after midnight the day of comp
+            L2MotorPower += Math.sin(CurrentL2Angle) * AlgaeArmSettings.upperJointGravityPower * AlgaeArmSettings.accelerationMult;
+        }
+
         L1MotorPower += AlgaeArmSettings.lowerJointGravityPower * Math.cos(CurrentL1Angle);
         L2MotorPower += AlgaeArmSettings.upperJointGravityPower * Math.cos(CurrentL2Angle);
         
@@ -292,7 +301,7 @@ public class AlgaeArmSystem extends SubsystemBase {
             bottomPivot.set(0);
             topPivot.set(0);
         }
-        clawRoller.set(clawRollerPower);
+        clawRoller.set(-clawRollerPower);
         
 
         lastL1TargetAngle = targetL1Angle;
@@ -365,8 +374,12 @@ public class AlgaeArmSystem extends SubsystemBase {
                 //.secondaryCurrentLimit(AlgaeRollerSettings.secondaryCurrentLimit);
             //clawRoller.configureAsync(clawRollerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
+            AlgaeArmSettings.includeGravityCompensation = SmartDashboard.getBoolean("Tune Algae use Gravity compensation", AlgaeArmSettings.includeGravityCompensation);
             AlgaeArmSettings.lowerJointGravityMult = SmartDashboard.getNumber("Tune Algae Lower Joint Gravity", AlgaeArmSettings.lowerJointGravityMult);
             AlgaeArmSettings.upperJointGravityPower = SmartDashboard.getNumber("Tune Algae Upper Joint Gravity Power", AlgaeArmSettings.upperJointGravityPower);
+
+            AlgaeArmSettings.includeAccelerationCompensation = SmartDashboard.getBoolean("Tune Algae use acceleration compensation", AlgaeArmSettings.includeAccelerationCompensation);
+            AlgaeArmSettings.accelerationMult = SmartDashboard.getNumber("Tune Algae acceleration mult", AlgaeArmSettings.accelerationMult);
         }
         
 
@@ -403,6 +416,8 @@ public class AlgaeArmSystem extends SubsystemBase {
         SmartDashboard.putNumber("Algae Lower Motor Current", bottomPivot.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Upper Motor Current", topPivot.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Claw Roller Power", clawRollerPower);
+
+
     }
 
 

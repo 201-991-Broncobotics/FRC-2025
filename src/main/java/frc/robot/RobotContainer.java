@@ -10,6 +10,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+//import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -70,6 +71,7 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser; 
 
     public RobotContainer() {
+        drivetrain.configureAutoBuilder();
         //selecting the pathplanner auto you want from dashboard + setting default
         autoChooser = AutoBuilder.buildAutoChooser("Test");
         SmartDashboard.putData("Auto Mode", autoChooser);

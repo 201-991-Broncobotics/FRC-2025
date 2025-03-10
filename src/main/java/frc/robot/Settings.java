@@ -108,17 +108,21 @@ public class Settings {
         public static double manualLowerJointSpeed = Math.toRadians(12); // radians per second
         public static double manualUpperJointSpeed = Math.toRadians(12); // radians per second
 
-        public static boolean includeGravityCompensation = false;
-        public static double lowerJointGravityMult = 0; // 1 // this is way more complicated so just a multiplier (more math is done in subsystem)
-        public static double upperJointGravityPower = 0.025; // 0.0895 // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
+        public static boolean includeGravityCompensation = true;
+        public static double lowerJointGravityMult = 0.05; // 1 // this is way more complicated so just a multiplier (more math is done in subsystem)
+        public static double upperJointGravityPower = 0.05; // 0.0895 // (l2 mass in lbs)*(386.088 in/s^2 gravity)*(l2 center of mass)*( 1/((39.37)^2*(2.205)) conversion) * (1/5*1/5 gear ratio) / (4.69 stall torque)
         public static double lowerJointGravityPower = 0.05;
+
+        public static boolean includeAccelerationCompensation = true;
+        public static double accelerationMult = 1;
+
 
     }
 
     public static class AlgaeRollerSettings {
-        public static double IntakePower = 0.6;
-        public static double HoldPower = 0.1;
-        public static double OuttakePower = -0.8;
+        public static double IntakePower = 0.8;
+        public static double HoldPower = 0.25;
+        public static double OuttakePower = -1.0;
         //public static int maxSmartCurrent = 15;
         //public static int secondaryCurrentLimit = 20;
     }
