@@ -37,6 +37,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralArmSystem;
 import frc.robot.subsystems.CoralClaw;
 import frc.robot.subsystems.DrivingProfiles;
+import frc.robot.subsystems.Vision;
 import frc.robot.utility.Functions;
 
 public class RobotContainer {
@@ -54,7 +55,9 @@ public class RobotContainer {
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
     private final Joystick driverFlightHotasOne = new Joystick(2);
 
-    private final DrivingProfiles drivingProfile = new DrivingProfiles();
+    private final Vision vision = new Vision();
+
+    private final DrivingProfiles drivingProfile = new DrivingProfiles(vision);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
@@ -99,7 +102,7 @@ public class RobotContainer {
             1, 2
         );  
 
-        drivingProfile.giveJoystickForTelemetry(driverFlightHotasOne);
+        // drivingProfile.giveJoystickForTelemetry(driverFlightHotasOne);
 
         drivingProfile.setDefaultCommand(new RunCommand(drivingProfile::update, drivingProfile));
 
@@ -124,6 +127,17 @@ public class RobotContainer {
             
         // DRIVER CONTROLS
 
+        // Auto Targeting
+        drivingProfile.setUpAutoThrottleControllerInput(() -> driverJoystick.getLeftTriggerAxis());
+        drivingProfile.setUpAutoThrottleJoystickInput(() -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2));
+
+        driverJoystick.leftBumper().onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
+        driverJoystick.leftTrigger().onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
+        new JoystickButton(driverFlightHotasOne, 1).onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
+        new JoystickButton(driverFlightHotasOne, 15).onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
+
+
+        
         driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
         new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake)); // d button on throttle side
 
@@ -138,7 +152,7 @@ public class RobotContainer {
         new JoystickButton(driverFlightHotasOne, 6).onTrue(new InstantCommand(drivingProfile::enableSlowDown)).onFalse(new InstantCommand(drivingProfile::disableSlowDown));
 
         // reset the field-centric heading on left bumper press
-        driverJoystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverJoystick.y().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Climbing
@@ -178,13 +192,16 @@ public class RobotContainer {
         operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
         operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetStowInCenter));
 
+        operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::disableLimits)).onFalse(new InstantCommand(algaeArmSystem::enableLimits));
+
         //operatorJoystick.povDownLeft().onTrue(new InstantCommand(coralClawSystem::toggleLeftDiffyPosition));
         //operatorJoystick.povDownRight().onTrue(new InstantCommand(coralArmSystem::toggleStoreArm));
 
         // temporary Algae Arm controls
         algaeArmSystem.setControllerInputsJoint( 
             () -> operatorJoystick.getLeftY(), 
-            () -> operatorJoystick.getRightY()
+            () -> operatorJoystick.getRightY(),
+            () -> 1.0 - 0.5 * operatorJoystick.getLeftTriggerAxis()
         );
 
         //coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem));

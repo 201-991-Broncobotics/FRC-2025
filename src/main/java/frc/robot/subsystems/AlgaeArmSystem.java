@@ -70,7 +70,7 @@ public class AlgaeArmSystem extends SubsystemBase {
 
     private DoubleSupplier L1Encoder, L2Encoder;
 
-    private DoubleSupplier TeleOpManualControl1, TeleOpManualControl2;
+    private DoubleSupplier TeleOpManualControl1, TeleOpManualControl2, TeleOpManualThrottle;
 
     private MotionProfile2d motionProfile;
 
@@ -95,7 +95,9 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double lastL1TargetAngle = 0, lastL2TargetAngle = 0, lastL1MotorPower = 0, lastL2MotorPower = 0;
 
     private double targetL1Angle = 0, targetL2Angle = 0;
-    private boolean controlOrthogonal = false;
+    private boolean controlOrthogonal = false, useLimits = true;
+
+    private double algaeArmThrottle = 1;
 
     /**
      * The 0 angles for each joint straight forward so that pi/2 (90 degrees) is straight up
@@ -146,15 +148,16 @@ public class AlgaeArmSystem extends SubsystemBase {
             SmartDashboard.putNumber("Tune Algae Upper kI", AlgaeArmSettings.UpperJointPID.getI());
             SmartDashboard.putNumber("Tune Algae Upper kD", AlgaeArmSettings.UpperJointPID.getD());
 
-            SmartDashboard.putNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
-            SmartDashboard.putNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
-            SmartDashboard.putNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
+            //SmartDashboard.putNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
+            //SmartDashboard.putNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
+            //SmartDashboard.putNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
 
             //SmartDashboard.putNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
             //SmartDashboard.putNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
 
             //SmartDashboard.putNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
 
+            /*
             SmartDashboard.putBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
             SmartDashboard.putNumber("Tune Algae lower joint kS", AlgaeArmSettings.L1Feedforward.getKs());
             SmartDashboard.putNumber("Tune Algae lower joint kG", AlgaeArmSettings.L1Feedforward.getKg());
@@ -162,6 +165,7 @@ public class AlgaeArmSystem extends SubsystemBase {
             SmartDashboard.putNumber("Tune Algae upper joint kS", AlgaeArmSettings.L2Feedforward.getKs());
             SmartDashboard.putNumber("Tune Algae upper joint kG", AlgaeArmSettings.L2Feedforward.getKg());
             SmartDashboard.putNumber("Tune Algae upper joint kV", AlgaeArmSettings.L2Feedforward.getKv());
+            */
 
             //SmartDashboard.putNumber("Tune Algae Limit maxAngleLowerJoint", AlgaeArmSettings.maxAngleLowerJoint);
             //SmartDashboard.putNumber("Tune Algae Limit minAngleLowerJoint", AlgaeArmSettings.minAngleLowerJoint);
@@ -195,9 +199,10 @@ public class AlgaeArmSystem extends SubsystemBase {
         controlOrthogonal = true;
     }
 
-    public void setControllerInputsJoint(DoubleSupplier lowerJointControl, DoubleSupplier upperJointControl) {
+    public void setControllerInputsJoint(DoubleSupplier lowerJointControl, DoubleSupplier upperJointControl, DoubleSupplier throttleControl) {
         TeleOpManualControl1 = lowerJointControl;
         TeleOpManualControl2 = upperJointControl;
+        TeleOpManualThrottle = throttleControl;
         controlOrthogonal = false;
     }
 
@@ -212,16 +217,21 @@ public class AlgaeArmSystem extends SubsystemBase {
         if (controlOrthogonal) {
             setTargetMoveSpeeds(control1, control2);
         } else {
-            targetL1Angle += AlgaeArmSettings.manualLowerJointSpeed * control1 * AlgaeArmSettings.lowerJointMovementSpeed * frameTime;
-            targetL2Angle += AlgaeArmSettings.manualUpperJointSpeed * control2 * AlgaeArmSettings.upperJointMovementSpeed * frameTime;
-            if (CurrentL2Angle > Math.toRadians(90)) {
-                targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
-            } else {
-                targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJointWhenArmOnOtherSide, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+            algaeArmThrottle = Functions.deadbandValue(TeleOpManualThrottle.getAsDouble(), 0.05);
+
+            targetL1Angle += AlgaeArmSettings.manualLowerJointSpeed * control1 * AlgaeArmSettings.lowerJointMovementSpeed * frameTime * algaeArmThrottle;
+            targetL2Angle += AlgaeArmSettings.manualUpperJointSpeed * control2 * AlgaeArmSettings.upperJointMovementSpeed * frameTime * algaeArmThrottle;
+
+            if (useLimits) {
+                if (CurrentL2Angle > Math.toRadians(90)) {
+                    targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJoint, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+                } else {
+                    targetL1Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleLowerJointWhenArmOnOtherSide, AlgaeArmSettings.maxAngleLowerJoint, targetL1Angle);
+                }
+                targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + targetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + targetL1Angle, targetL2Angle);
+                targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, targetL2Angle);
             }
-            targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJointFromLower + targetL1Angle, AlgaeArmSettings.maxAngleUpperJointFromLower + targetL1Angle, targetL2Angle);
-            targetL2Angle = Functions.minMaxValue(AlgaeArmSettings.minAngleUpperJoint, AlgaeArmSettings.maxAngleUpperJoint, targetL2Angle);
-            // setTargetAngles(targetL1Angle, targetL2Angle);
+
         }
         
         update();
@@ -327,16 +337,17 @@ public class AlgaeArmSystem extends SubsystemBase {
             AlgaeArmSettings.UpperJointPID.setI(SmartDashboard.getNumber("Tune Algae Upper kI", AlgaeArmSettings.UpperJointPID.getI()));
             AlgaeArmSettings.UpperJointPID.setD(SmartDashboard.getNumber("Tune Algae Upper kD", AlgaeArmSettings.UpperJointPID.getD()));
 
-            AlgaeArmSettings.maxAcceleration = SmartDashboard.getNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
-            AlgaeArmSettings.maxDeceleration = SmartDashboard.getNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
-            AlgaeArmSettings.maxSpeed = SmartDashboard.getNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
-            motionProfile.updateSettings(AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
+            //AlgaeArmSettings.maxAcceleration = SmartDashboard.getNumber("Tune Algae max Accel", AlgaeArmSettings.maxAcceleration);
+            //AlgaeArmSettings.maxDeceleration = SmartDashboard.getNumber("Tune Algae max Decel", AlgaeArmSettings.maxDeceleration);
+            //AlgaeArmSettings.maxSpeed = SmartDashboard.getNumber("Tune Algae max Speed", AlgaeArmSettings.maxSpeed);
+            //motionProfile.updateSettings(AlgaeArmSettings.maxAcceleration, AlgaeArmSettings.maxDeceleration, AlgaeArmSettings.maxSpeed);
 
             //AlgaeArmSettings.AlgaeArmLowerJointStartAngle = SmartDashboard.getNumber("Tune Algae lower start angle", AlgaeArmSettings.AlgaeArmLowerJointStartAngle);
             //AlgaeArmSettings.AlgaeArmUpperJointStartAngle = SmartDashboard.getNumber("Tune Algae upper start angle", AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
 
             //AlgaeArmSettings.voltageTolerance = SmartDashboard.getNumber("Tune Algae voltage tolerance", AlgaeArmSettings.voltageTolerance);
 
+            /* 
             AlgaeArmSettings.useFeedforward = SmartDashboard.getBoolean("Tune Algae use feedforward", AlgaeArmSettings.useFeedforward);
             double lowerJointKS = SmartDashboard.getNumber("Tune Algae lower joint kS", AlgaeArmSettings.L1Feedforward.getKs());
             double lowerJointKG = SmartDashboard.getNumber("Tune Algae lower joint kG", AlgaeArmSettings.L1Feedforward.getKg());
@@ -350,6 +361,7 @@ public class AlgaeArmSystem extends SubsystemBase {
             if (!(upperJointKS == AlgaeArmSettings.L2Feedforward.getKs() && upperJointKG == AlgaeArmSettings.L2Feedforward.getKg() && upperJointKV == AlgaeArmSettings.L2Feedforward.getKv())) {
                 AlgaeArmSettings.L2Feedforward = new ArmFeedforward(upperJointKS, upperJointKG, upperJointKV);
             }
+            */
 
 
             
@@ -399,23 +411,30 @@ public class AlgaeArmSystem extends SubsystemBase {
         if (frameTime > 0) UpdateHz = 1.0 / frameTime;
         SmartDashboard.putString("Code framerate", UpdateHz + " hz");
         SmartDashboard.putString("Algae Arm Target", "x:" + round(Target.x, 2) + " y:" + round(Target.y, 2));
-        SmartDashboard.putString("Algae Arm Moving Target", "x:" + round(MovingTarget.x, 2) + " y:" + round(MovingTarget.y, 2));
+        //SmartDashboard.putString("Algae Arm Moving Target", "x:" + round(MovingTarget.x, 2) + " y:" + round(MovingTarget.y, 2));
         Vector2d CurrentPointForTelemetry = getCurrentPoint();
         SmartDashboard.putString("Algae Arm Current Position", "x:" + round(CurrentPointForTelemetry.x, 2) + " y:" + round(CurrentPointForTelemetry.y, 2));
-        Vector2d PositionErrorForTelemetry = MovingTarget.minus(CurrentPointForTelemetry);
-        SmartDashboard.putString("Algae Arm Target Error", "x:" + round(PositionErrorForTelemetry.x, 3) + " y:" + round(PositionErrorForTelemetry.y, 3));
+        //Vector2d PositionErrorForTelemetry = MovingTarget.minus(CurrentPointForTelemetry);
+        //SmartDashboard.putString("Algae Arm Target Error", "x:" + round(PositionErrorForTelemetry.x, 3) + " y:" + round(PositionErrorForTelemetry.y, 3));
         SmartDashboard.putNumber("Algae Lower Angle", Math.toDegrees(CurrentL1Angle));
         SmartDashboard.putNumber("Algae Upper Angle", Math.toDegrees(CurrentL2Angle));
         SmartDashboard.putNumber("Algae Lower Target Angle", Math.toDegrees(lastL1TargetAngle));
         SmartDashboard.putNumber("Algae Upper Target Angle", Math.toDegrees(lastL2TargetAngle));
         SmartDashboard.putBoolean("Algae RightBias", RightBias);
-        SmartDashboard.putNumber("Algae Lower Joint Target AngVel", getLowerJointTargetAngVel());
-        SmartDashboard.putNumber("Algae Upper Joint Target AngVel", getUpperJointTargetAngVel());
+        //SmartDashboard.putNumber("Algae Lower Joint Target AngVel", getLowerJointTargetAngVel());
+        //SmartDashboard.putNumber("Algae Upper Joint Target AngVel", getUpperJointTargetAngVel());
         SmartDashboard.putNumber("Algae Lower Motor Power", lastL1MotorPower);
         SmartDashboard.putNumber("Algae Upper Motor Power", lastL2MotorPower);
         SmartDashboard.putNumber("Algae Lower Motor Current", bottomPivot.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Upper Motor Current", topPivot.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Claw Roller Power", clawRollerPower);
+        SmartDashboard.putNumber("Algae Roller Motor Temp", clawRoller.getMotorTemperature());
+
+        SmartDashboard.putNumber("Algae Lower Motor Temp", bottomPivot.getDeviceTemp().getValueAsDouble());
+        SmartDashboard.putNumber("Algae Upper Motor Temp", topPivot.getDeviceTemp().getValueAsDouble());
+
+        SmartDashboard.putBoolean("Algae Lower Motor Safety thing", bottomPivot.isSafetyEnabled());
+        SmartDashboard.putBoolean("Algae Upper Motor Safety thing", topPivot.isSafetyEnabled());
 
 
     }
@@ -749,11 +768,18 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
 
+    //public void enabledAlgaeArmSlowdown() { algaeArmThrottle = AlgaeArmSettings.AlgaeArmSlowdownMult; }
+    //public void disableAlgaeArmSlowdown() { algaeArmThrottle = 1.0; }
+
+
     public void runRollerClaw(double speed) { clawRollerPower = speed; }
     public void stopRollerClaw() { clawRollerPower = 0; }
     public void intakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.IntakePower; }
     public void holdRollerClaw() { clawRollerPower = AlgaeRollerSettings.HoldPower; }
     public void outtakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.OuttakePower; }
+
+    public void disableLimits() { useLimits = false; }
+    public void enableLimits() { useLimits = true; }
 
 
 

@@ -64,7 +64,7 @@ public class Settings {
 
     }
     public static class ClimbingSettings{
-        public static double climbingSpeed = 1; // TODO:undo
+        public static double climbingSpeed = 1;
     }
 
     public static class AlgaeArmSettings {
@@ -78,7 +78,7 @@ public class Settings {
         public static double maxSpeed = 0; // in/s
 
         public static PIDController LowerJointPID = new PIDController(0.55, 0, 0); // 1, 0, 0
-        public static PIDController UpperJointPID = new PIDController(0.45, 0, 0); // 0.8, 0, 0
+        public static PIDController UpperJointPID = new PIDController(0.5, 0, 0); // 0.8, 0, 0
         public static double voltageTolerance =0.05; //tolerance for PID to stop jitter movements and to 0 out voltage
 
         // Feedforward
@@ -88,7 +88,7 @@ public class Settings {
 
         // Limits
         public static double maxAngleLowerJoint = Math.toRadians(150);
-        public static double minAngleLowerJoint = Math.toRadians(45); // 90
+        public static double minAngleLowerJoint = Math.toRadians(70); // 90
         public static double minAngleLowerJointWhenArmOnOtherSide = Math.toRadians(90); // 115
         public static double maxAngleUpperJointFromLower = Math.toRadians(170); // 0 being straight
         public static double minAngleUpperJointFromLower = Math.toRadians(-170);
@@ -104,7 +104,7 @@ public class Settings {
 
         // oops I made two sets of these max speeds
         public static double lowerJointMovementSpeed = 3.5; // deg/s
-        public static double upperJointMovementSpeed = 8.0; // deg/s
+        public static double upperJointMovementSpeed = 10.0; // deg/s
         public static double manualLowerJointSpeed = Math.toRadians(12); // radians per second
         public static double manualUpperJointSpeed = Math.toRadians(12); // radians per second
 
@@ -116,7 +116,6 @@ public class Settings {
         public static boolean includeAccelerationCompensation = true;
         public static double accelerationMult = 1;
 
-
     }
 
     public static class AlgaeRollerSettings {
@@ -125,5 +124,18 @@ public class Settings {
         public static double OuttakePower = -1.0;
         //public static int maxSmartCurrent = 15;
         //public static int secondaryCurrentLimit = 20;
+    }
+
+    public static class AutoTargetingSettings {
+
+        public static boolean AutoAimingEnabled = true;
+        public static PIDController AutoAimPID = new PIDController(0, 0, 0);
+
+        public static boolean AutoDrivingEnabled = false;
+        public static double AutoDrivingPower = 0;
+        public static double targetPercentageOfVisionBlocked = 0.2;
+
+        public static double searchingSpeed = 0.5;
+
     }
 }
