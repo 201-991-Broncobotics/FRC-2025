@@ -90,7 +90,7 @@ public class RobotContainer {
             () -> -driverJoystick.getLeftY(), 
             () -> driverJoystick.getLeftX(), 
             () -> -driverJoystick.getRightX(), 
-            () -> 0.5 + 0.5 * driverJoystick.getLeftTriggerAxis(), 
+            () -> 0.5 + 0.5 * driverJoystick.getRightTriggerAxis(), 
             2, 2
         );
 
@@ -137,7 +137,7 @@ public class RobotContainer {
         new JoystickButton(driverFlightHotasOne, 15).onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
 
 
-        
+
         driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
         new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake)); // d button on throttle side
 
@@ -190,7 +190,9 @@ public class RobotContainer {
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
         operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
-        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetStowInCenter));
+        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetHighBall));
+        operatorJoystick.povLeft().onTrue(new InstantCommand(algaeArmSystem::presetLowBall));
+        operatorJoystick.povRight().onTrue(new InstantCommand(algaeArmSystem::presetFloorBackward));
 
         operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::disableLimits)).onFalse(new InstantCommand(algaeArmSystem::enableLimits));
 

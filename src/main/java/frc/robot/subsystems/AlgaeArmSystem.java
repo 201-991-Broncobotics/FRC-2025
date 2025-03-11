@@ -665,13 +665,13 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
     public void stopArm() {
-        Target = getCurrentPoint();
-        targetL1Angle = CurrentL1Angle;
-        targetL2Angle = CurrentL2Angle;
         armStopped = true;
     }
 
     public void enableArm() {
+        Target = getCurrentPoint();
+        targetL1Angle = CurrentL1Angle;
+        targetL2Angle = CurrentL2Angle;
         armStopped = false;
     }
 
@@ -798,16 +798,18 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
     public void presetFloorBackward() {
-        //Target = new Vector2d();
+        targetL1Angle = Math.toRadians(90);
+        targetL2Angle = Math.toRadians(-60);
     }
 
     public void presetLowBall() {
-        //Target = new Vector2d();
+        targetL1Angle = Math.toRadians(80);
+        targetL2Angle = Math.toRadians(20);
     }
 
     public void presetHighBall() {
         targetL1Angle = Math.toRadians(80);
-        targetL2Angle = Math.toRadians(30);
+        targetL2Angle = Math.toRadians(60);
     }
 
 }
