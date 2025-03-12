@@ -65,6 +65,9 @@ public class Settings {
     }
     public static class ClimbingSettings{
         public static double climbingSpeed = 1;
+
+        public static double maxEncoderPosition = 85;
+        public static double minEncoderPosition = 0;
     }
 
     public static class AlgaeArmSettings {

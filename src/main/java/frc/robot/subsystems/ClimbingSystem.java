@@ -1,6 +1,12 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
+
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -16,37 +22,51 @@ import frc.robot.Settings.ClimbingSettings;
 public class ClimbingSystem extends SubsystemBase {
 
     private double climbingSpeed;
-    private SparkMax climbingMotor;
+    //private SparkMax climbingMotor;
+    private StatusCode climbingMotorConfig;
+    private TalonFX climbingMotor;
+    private CurrentLimitsConfigs currentLimitConfigs;
 
     private double ClimbingPower = 0;
 
-    private SparkMaxConfig climbMotorConfig;
+    //private SparkMaxConfig climbMotorConfig;
 
 
     public ClimbingSystem() {
-        climbingMotor = new SparkMax(MotorConstants.climbingMotorID, MotorType.kBrushless);
-        climbMotorConfig = new SparkMaxConfig();
+        //climbingMotor = new SparkMax(MotorConstants.climbingMotorID, MotorType.kBrushless);
+        //climbMotorConfig = new SparkMaxConfig();
 
-        climbMotorConfig.idleMode(IdleMode.kBrake);
+        //climbMotorConfig.idleMode(IdleMode.kBrake);
 
-        climbingMotor.configure(climbMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        //climbingMotor.configure(climbMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+        climbingMotor = new TalonFX(MotorConstants.climbingMotorID);
+        //climbingMotor.setControl(climbingMotorConfig);
+
+        currentLimitConfigs = new CurrentLimitsConfigs() // might not work
+            .withStatorCurrentLimit(Amps.of(20))
+            .withStatorCurrentLimitEnable(true);
+
+        climbingMotorConfig = climbingMotor.getConfigurator().apply(currentLimitConfigs);
+
+        climbingMotor.setNeutralMode(NeutralModeValue.Coast);
+        
 
         climbingSpeed = ClimbingSettings.climbingSpeed;
         ClimbingPower = 0;
     }
 
     public void update() {
-        if (climbingMotor.getEncoder().getPosition() > 85 && ClimbingPower > 0) ClimbingPower = 0;
-        if (climbingMotor.getEncoder().getPosition() < 0 && ClimbingPower < 0) ClimbingPower = 0;
+        if (climbingMotor.getPosition().getValueAsDouble() > ClimbingSettings.maxEncoderPosition && ClimbingPower > 0) ClimbingPower = 0;
+        if (climbingMotor.getPosition().getValueAsDouble() < ClimbingSettings.minEncoderPosition && ClimbingPower < 0) ClimbingPower = 0;
         climbingMotor.set(ClimbingPower);
     }
 
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getOutputCurrent());
-        SmartDashboard.putNumber("Climb Encoder", climbingMotor.getEncoder().getPosition());
+        SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Climb Encoder", climbingMotor.getPosition().getValueAsDouble());
     }
 
     @Override
