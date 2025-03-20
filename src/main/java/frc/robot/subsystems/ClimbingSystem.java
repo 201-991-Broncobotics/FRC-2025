@@ -1,7 +1,11 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
+
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -18,18 +22,19 @@ import frc.robot.Settings.ClimbingSettings;
 public class ClimbingSystem extends SubsystemBase {
 
     private double climbingSpeed;
-    private SparkFlex climbingMotor;
+    private SparkMax climbingMotor;
 
     private double ClimbingPower = 0;
 
-    private SparkFlexConfig climbMotorConfig;
+    private SparkMaxConfig climbMotorConfig;
 
 
     public ClimbingSystem() {
-        climbingMotor = new SparkFlex(36, MotorType.kBrushless);
-        climbMotorConfig = new SparkFlexConfig();
+        climbingMotor = new SparkMax(MotorConstants.climbingMotorID, MotorType.kBrushless);
+        climbMotorConfig = new SparkMaxConfig();
 
         climbMotorConfig.idleMode(IdleMode.kBrake);
+
         climbingMotor.configure(climbMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
 
@@ -38,14 +43,16 @@ public class ClimbingSystem extends SubsystemBase {
     }
 
     public void update() {
+        if (climbingMotor.getEncoder().getPosition() > 85 && ClimbingPower > 0) ClimbingPower = 0;
+        if (climbingMotor.getEncoder().getPosition() < 0 && ClimbingPower < 0) ClimbingPower = 0;
         climbingMotor.set(ClimbingPower);
     }
 
 
     @Override
     public void periodic() {
-        //SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getMotorVoltage().getValueAsDouble());
-        SmartDashboard.putNumber("Climb Encoder", -climbingMotor.getAbsoluteEncoder().getPosition());
+        SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getOutputCurrent());
+        SmartDashboard.putNumber("Climb Encoder", climbingMotor.getEncoder().getPosition());
     }
 
     @Override

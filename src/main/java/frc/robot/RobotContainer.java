@@ -36,7 +36,7 @@ import frc.robot.subsystems.AlgaeArmSystem;
 import frc.robot.subsystems.ClimbingSystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralArmSystem;
-import frc.robot.subsystems.CoralClaw;
+import frc.robot.subsystems.FalconCoralClaw;
 import frc.robot.subsystems.DrivingProfiles;
 import frc.robot.subsystems.Vision;
 import frc.robot.utility.Functions;
@@ -68,7 +68,7 @@ public class RobotContainer {
 
 
     //public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
-    //public final CoralClaw coralClawSystem = new CoralClaw();
+    //public final FalconCoralClaw coralClawSystem = new FalconCoralClaw();
 
     //private final CoralArmTeleOpCommand runElevatorUp = new CoralArmTeleOpCommand(coralArmSystem, 1);
     //private final CoralArmTeleOpCommand runElevatorDown = new CoralArmTeleOpCommand(coralArmSystem, -1);

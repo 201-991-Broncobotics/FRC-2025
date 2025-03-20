@@ -11,15 +11,11 @@ import frc.robot.Constants.MotorConstants;
 import frc.robot.Settings.CoralClawSettings;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkClosedLoopController;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
-public class CoralClaw extends SubsystemBase {
+public class FalconCoralClaw extends SubsystemBase {
 
     //Targeted Pos for each motor
     double rMotorPos = 0.0; //Current Diffy Position for Right motor
@@ -29,38 +25,35 @@ public class CoralClaw extends SubsystemBase {
 
     private double RollerPower;
 
-    private SparkMax lmotor, rollerMotor;
+    private TalonFX lmotor, rollerMotor;
     //private SparkMax rmotor; // this is separate so I can see where to comment out code
     private DoubleSupplier rencoder,lencoder; // gets angle in radians at the joint
     private double gearRatio = 1.0/4.0 * 1.0/5.0 * 18.0/30.0; // gear ratio from motor to each joint side
 
-    private SparkMaxConfig rightMotorConfig, leftMotorConfig, coralMotorConfig;
+    private TalonFXConfiguration rightMotorConfig, leftMotorConfig, coralMotorConfig;
 
     private double LeftDiffyTarget = 0;
 
-    public CoralClaw() {
+    public FalconCoralClaw() {
         RollerPower = 0;
 
         Roll = CoralClawSettings.startRoll;
         Pitch = CoralClawSettings.startPitch;
 
         // initialize motor
-        //rmotor = new SparkMax(rightDiffyID, MotorType.kBrushless);
-        lmotor = new SparkMax(leftDiffyID, MotorType.kBrushless);
-        rollerMotor = new SparkMax(MotorConstants.coralRollerID, MotorType.kBrushless);
+        lmotor = new TalonFX(MotorConstants.leftDiffyID);
+        rollerMotor = new TalonFX(MotorConstants.coralRollerID);
 
         // create configurations
-        rightMotorConfig = new SparkMaxConfig();
-        leftMotorConfig = new SparkMaxConfig();
-        coralMotorConfig = new SparkMaxConfig();
+        leftMotorConfig = new TalonFXConfiguration();
+        coralMotorConfig = new TalonFXConfiguration();
 
 
         // set configurations
-        rightMotorConfig.idleMode(IdleMode.kCoast);
                 //.smartCurrentLimit(CoralClawSettings.diffyMotorSmartStallCurrent);
-        leftMotorConfig.idleMode(IdleMode.kCoast);
+        lmotor.setNeutralMode(NeutralModeValue.Coast);
                 //.smartCurrentLimit(CoralClawSettings.diffyMotorSmartStallCurrent);
-        coralMotorConfig.idleMode(IdleMode.kCoast);
+        rollerMotor.setNeutralMode(NeutralModeValue.Coast);
                 //.smartCurrentLimit(CoralClawSettings.intakeSmartStallCurrent)
                 //.secondaryCurrentLimit(CoralClawSettings.intakeSecondaryCurrent); // needs to be limited as we stall the motor intentionally when pickng up
         //rightMotorConfig.closedLoop.pidf(kP, kI, kD, RFF);
@@ -68,12 +61,10 @@ public class CoralClaw extends SubsystemBase {
 
         // apply configurations initially
         //rmotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        lmotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        rollerMotor.configure(coralMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         // Encoder object created to display position values - I think it uses internal encoder or smth?
         rencoder = () -> gearRatio * 0 * 2*Math.PI; // converts to radians // rmotor.getEncoder().getPosition()
-        lencoder = () -> gearRatio * lmotor.getEncoder().getPosition() * 2*Math.PI;
+        lencoder = () -> gearRatio * lmotor.getPosition().getValueAsDouble() * 2*Math.PI;
 
         if (Settings.tuningTelemetryEnabled) {
             //SmartDashboard.putNumber("Tune Coral Claw kP", CoralClawSettings.kP);
@@ -117,9 +108,6 @@ public class CoralClaw extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-
-        /* 
-
         // read PID coefficients from SmartDashboard
         if (Settings.tuningTelemetryEnabled) {
             //CoralClawSettings.kP = SmartDashboard.getNumber("Tune Coral Claw kP", CoralClawSettings.kP);
@@ -139,7 +127,7 @@ public class CoralClaw extends SubsystemBase {
         SmartDashboard.putNumber("CORAL left diffy motor angle target", LeftDiffyTarget);
         CoralClawSettings.testingPitch = SmartDashboard.getNumber("Testing Diffy Pitch", CoralClawSettings.testingPitch);
         CoralClawSettings.testingRoll = SmartDashboard.getNumber("Testing Diffy Roll", CoralClawSettings.testingRoll);
-        SmartDashboard.putNumber("Coral Roller Current", rollerMotor.getOutputCurrent());
+        SmartDashboard.putNumber("Coral Roller Current", rollerMotor.getStatorCurrent().getValueAsDouble());
 
         //rightMotorConfig.closedLoop.pidf(CoralClawSettings.kP, CoralClawSettings.kI, CoralClawSettings.kD, CoralClawSettings.RFF);
         //leftMotorConfig.closedLoop.pidf(CoralClawSettings.kP, CoralClawSettings.kI, CoralClawSettings.kD, CoralClawSettings.LFF);
@@ -153,10 +141,8 @@ public class CoralClaw extends SubsystemBase {
         SmartDashboard.putNumber("CoralClaw Current Pitch", getCurrentPitch());
         SmartDashboard.putNumber("CoralClaw Current Roll", getCurrentRoll());
         //SmartDashboard.putNumber("CoralClaw Right Motor Power", rmotor.getAppliedOutput()); // may or may not be power
-        SmartDashboard.putNumber("CoralClaw Left Motor Power", lmotor.getAppliedOutput());
+        SmartDashboard.putNumber("CoralClaw Left Motor Power", lmotor.getMotorVoltage().getValueAsDouble());
         SmartDashboard.putNumber("CoralClaw Roller Power", RollerPower);
-
-        */
 
     }
 
