@@ -119,9 +119,12 @@ public class Settings {
     }
 
     public static class AlgaeRollerSettings {
-        public static double IntakePower = 0.8;
+        public static double IntakePower = 0.9;
         public static double HoldPower = 0.25;
-        public static double OuttakePower = -1.0;
+        public static double OuttakePower = -0.1;
+        public static double ShootPower = -1.0;
+        public static double OuttakeAutoPower = -0.25;
+        
         //public static int maxSmartCurrent = 15;
         //public static int secondaryCurrentLimit = 20;
     }

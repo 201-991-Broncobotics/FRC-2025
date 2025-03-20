@@ -1,10 +1,12 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -16,19 +18,18 @@ import frc.robot.Settings.ClimbingSettings;
 public class ClimbingSystem extends SubsystemBase {
 
     private double climbingSpeed;
-    private SparkMax climbingMotor;
+    private SparkFlex climbingMotor;
 
     private double ClimbingPower = 0;
 
-    private SparkMaxConfig climbMotorConfig;
+    private SparkFlexConfig climbMotorConfig;
 
 
     public ClimbingSystem() {
-        climbingMotor = new SparkMax(MotorConstants.climbingMotorID, MotorType.kBrushless);
-        climbMotorConfig = new SparkMaxConfig();
+        climbingMotor = new SparkFlex(36, MotorType.kBrushless);
+        climbMotorConfig = new SparkFlexConfig();
 
         climbMotorConfig.idleMode(IdleMode.kBrake);
-
         climbingMotor.configure(climbMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
 
@@ -37,16 +38,14 @@ public class ClimbingSystem extends SubsystemBase {
     }
 
     public void update() {
-        if (climbingMotor.getEncoder().getPosition() > 85 && ClimbingPower > 0) ClimbingPower = 0;
-        if (climbingMotor.getEncoder().getPosition() < 0 && ClimbingPower < 0) ClimbingPower = 0;
         climbingMotor.set(ClimbingPower);
     }
 
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getOutputCurrent());
-        SmartDashboard.putNumber("Climb Encoder", climbingMotor.getEncoder().getPosition());
+        //SmartDashboard.putNumber("Climb Motor Current", climbingMotor.getMotorVoltage().getValueAsDouble());
+        SmartDashboard.putNumber("Climb Encoder", -climbingMotor.getAbsoluteEncoder().getPosition());
     }
 
     @Override

@@ -61,6 +61,7 @@ public class DrivingProfiles extends SubsystemBase {
 
     public DrivingProfiles(Vision vision) {
         new DrivingProfiles(vision, preferController);
+        this.camera = vision;
     }
 
 

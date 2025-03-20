@@ -95,7 +95,7 @@ public class AlgaeArmSystem extends SubsystemBase {
     private double lastL1TargetAngle = 0, lastL2TargetAngle = 0, lastL1MotorPower = 0, lastL2MotorPower = 0;
 
     private double targetL1Angle = 0, targetL2Angle = 0;
-    private boolean controlOrthogonal = false, useLimits = true;
+    private boolean controlOrthogonal = false, useLimits = false;
 
     private double algaeArmThrottle = 1;
 
@@ -108,6 +108,9 @@ public class AlgaeArmSystem extends SubsystemBase {
         // initialize motors
         bottomPivot = new TalonFX(MotorConstants.algaeBottomPivotID);
         topPivot = new TalonFX(MotorConstants.algaeTopPivotID);
+        // this will no longer be supported in 2026
+        topPivot.setInverted(true);
+        
         clawRoller = new SparkMax(MotorConstants.algaeRollerID, MotorType.kBrushless);
         clawRollerConfig.idleMode(IdleMode.kCoast);
 
@@ -776,11 +779,11 @@ public class AlgaeArmSystem extends SubsystemBase {
     public void stopRollerClaw() { clawRollerPower = 0; }
     public void intakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.IntakePower; }
     public void holdRollerClaw() { clawRollerPower = AlgaeRollerSettings.HoldPower; }
-    public void outtakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.OuttakePower; }
+    public void outtakeRollerClaw() { clawRollerPower = AlgaeRollerSettings.OuttakeAutoPower;}
+    public void shootRollerClaw() { clawRollerPower = AlgaeRollerSettings.ShootPower;}
 
     public void disableLimits() { useLimits = false; }
     public void enableLimits() { useLimits = true; }
-
 
 
 
@@ -808,8 +811,14 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
     public void presetHighBall() {
-        targetL1Angle = Math.toRadians(80);
-        targetL2Angle = Math.toRadians(60);
+        //targetL1Angle = Math.toRadians(80);
+        //targetL2Angle = Math.toRadians(60);
     }
+    
+    public void presetAutoScore() {
+        targetL1Angle = Math.toRadians(130);
+        targetL2Angle = Math.toRadians(190);
+    }
+    
 
 }

@@ -26,7 +26,7 @@ public final class Constants {
         public static final int leftDiffyID = 1; // disabled
         public static final int rightDiffyID = 20; // disabled
         public static final int coralRollerID = 23; // disabled
-        public static final int climbingMotorID = 23;
+        public static final int climbingMotorID = 36;
     }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;

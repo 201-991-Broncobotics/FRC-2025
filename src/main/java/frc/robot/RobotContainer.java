@@ -12,6 +12,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 //import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -61,7 +62,11 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArmSystem algaeArmSystem = new AlgaeArmSystem(AlgaeArmSettings.AlgaeArmLowerJointStartAngle, AlgaeArmSettings.AlgaeArmUpperJointStartAngle);
-    public final ClimbingSystem climbingSystem = new ClimbingSystem();
+    //public final ClimbingSystem climbingSystem = new ClimbingSystem();
+
+   
+
+
     //public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
     //public final CoralClaw coralClawSystem = new CoralClaw();
 
@@ -74,9 +79,15 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser; 
 
     public RobotContainer() {
+         //Register Auto Commands
+        NamedCommands.registerCommand("startArm",new InstantCommand(algaeArmSystem::enableArm));
+        NamedCommands.registerCommand("raiseArm",new InstantCommand(algaeArmSystem::presetAutoScore));
+        NamedCommands.registerCommand("placeCoral",new InstantCommand(algaeArmSystem::outtakeRollerClaw));
+        NamedCommands.registerCommand("stopClaw",new InstantCommand(algaeArmSystem::stopRollerClaw));
+        
         drivetrain.configureAutoBuilder();
         //selecting the pathplanner auto you want from dashboard + setting default
-        autoChooser = AutoBuilder.buildAutoChooser("Test");
+        autoChooser = AutoBuilder.buildAutoChooser("middleAuto");
         SmartDashboard.putData("Auto Mode", autoChooser);
 
         configureBindings();
@@ -156,11 +167,11 @@ public class RobotContainer {
         new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Climbing
-        driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
-        driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
+        //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
+        //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
 
-        new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-        new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+        //new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+        //new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -180,7 +191,9 @@ public class RobotContainer {
         //operatorJoystick.rightBumper().onTrue(new InstantCommand(coralClawSystem::outtakeRoller)).onFalse(new InstantCommand(coralClawSystem::stopRoller));
         //operatorJoystick.rightTrigger().onTrue(new InstantCommand(coralClawSystem::intakeRoller)).toggleOnFalse(new InstantCommand(coralClawSystem::holdRoller));
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
+        operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::shootRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
+
         
         //operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::toggleRightBias));
         //operatorJoystick.povUp().onTrue(new InstantCommand(coralArmSystem::toggleCoralArm));
@@ -190,9 +203,9 @@ public class RobotContainer {
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
         operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
-        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetHighBall));
+        //operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetHighBall));
         operatorJoystick.povLeft().onTrue(new InstantCommand(algaeArmSystem::presetLowBall));
-        operatorJoystick.povRight().onTrue(new InstantCommand(algaeArmSystem::presetFloorBackward));
+        //operatorJoystick.povRight().onTrue(new InstantCommand(algaeArmSystem::presetFloorBackward));
 
         operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::disableLimits)).onFalse(new InstantCommand(algaeArmSystem::enableLimits));
 
@@ -209,7 +222,7 @@ public class RobotContainer {
         //coralClawSystem.setDefaultCommand(new RunCommand(coralClawSystem::update, coralClawSystem));
         //coralArmSystem.setDefaultCommand(new RunCommand(coralArmSystem::update, coralArmSystem));
         algaeArmSystem.setDefaultCommand(new RunCommand(algaeArmSystem::updateInTeleOp, algaeArmSystem));
-        climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
+        //climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
         
     }
