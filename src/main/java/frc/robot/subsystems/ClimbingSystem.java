@@ -6,6 +6,7 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -22,7 +23,7 @@ import frc.robot.Settings.ClimbingSettings;
 public class ClimbingSystem extends SubsystemBase {
 
     private double climbingSpeed;
-    private SparkMax climbingMotor;
+    private SparkFlex climbingMotor;
 
     private double ClimbingPower = 0;
 
@@ -30,7 +31,7 @@ public class ClimbingSystem extends SubsystemBase {
 
 
     public ClimbingSystem() {
-        climbingMotor = new SparkMax(MotorConstants.climbingMotorID, MotorType.kBrushless);
+        climbingMotor = new SparkFlex(MotorConstants.climbingMotorID, MotorType.kBrushless);
         climbMotorConfig = new SparkMaxConfig();
 
         climbMotorConfig.idleMode(IdleMode.kBrake);

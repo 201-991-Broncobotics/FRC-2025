@@ -17,7 +17,7 @@ public final class Constants {
         public static final int algaeBottomPivotID =8;
         public static final int algaeTopPivotID = 9;
 
-        public static final int climbingMotorID = 13;
+        
 
         public static final int coralLeftElevatorID =10;
         public static final int coralRightElevatorID = 11;
