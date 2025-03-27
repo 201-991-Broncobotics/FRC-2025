@@ -28,7 +28,7 @@ public class DrivingProfiles extends SubsystemBase {
 
     private boolean preferController = true;
 
-    private final double ControllerDeadband = 0.05, JoystickDeadband = 0.1, AutoThrottleDeadband = 0.05;
+    private final double ControllerDeadband = 0.05, JoystickDeadband = 0.13, AutoThrottleDeadband = 0.05;
 
     private double presetThrottleControl = 0.25;
     private boolean useThrottlePreset = false, autoAiming = false, autoDriving = false;
