@@ -84,6 +84,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("raiseArm",new InstantCommand(algaeArmSystem::presetAutoScore));
         NamedCommands.registerCommand("placeCoral",new InstantCommand(algaeArmSystem::outtakeRollerClaw));
         NamedCommands.registerCommand("stopClaw",new InstantCommand(algaeArmSystem::stopRollerClaw));
+        NamedCommands.registerCommand("rasieArmLow",new InstantCommand(algaeArmSystem::presetLowBall));
+        NamedCommands.registerCommand("raiseArmProcessor",new InstantCommand(algaeArmSystem::presetProcessor));
         
         drivetrain.configureAutoBuilder();
         //selecting the pathplanner auto you want from dashboard + setting default
@@ -191,7 +193,7 @@ public class RobotContainer {
         //operatorJoystick.rightBumper().onTrue(new InstantCommand(coralClawSystem::outtakeRoller)).onFalse(new InstantCommand(coralClawSystem::stopRoller));
         //operatorJoystick.rightTrigger().onTrue(new InstantCommand(coralClawSystem::intakeRoller)).toggleOnFalse(new InstantCommand(coralClawSystem::holdRoller));
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArmSystem::outtakeRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
-        operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::shootRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
+        //operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::shootRollerClaw)).onFalse(new InstantCommand(algaeArmSystem::stopRollerClaw));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArmSystem::intakeRollerClaw)).toggleOnFalse(new InstantCommand(algaeArmSystem::holdRollerClaw));
 
         
@@ -203,9 +205,9 @@ public class RobotContainer {
         operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
 
         operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
-        //operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetHighBall));
-        operatorJoystick.povLeft().onTrue(new InstantCommand(algaeArmSystem::presetLowBall));
-        //operatorJoystick.povRight().onTrue(new InstantCommand(algaeArmSystem::presetFloorBackward));
+        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetLowBall));
+       // operatorJoystick.povLeft().onTrue(new InstantCommand(algaeArmSystem::presetLowBall));
+        operatorJoystick.povRight().onTrue(new InstantCommand(algaeArmSystem::presetProcessor));
 
         operatorJoystick.leftBumper().onTrue(new InstantCommand(algaeArmSystem::disableLimits)).onFalse(new InstantCommand(algaeArmSystem::enableLimits));
 

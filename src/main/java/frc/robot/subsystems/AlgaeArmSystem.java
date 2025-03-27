@@ -791,8 +791,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     // PRESETS - though probably should move these to an algae command 
 
     public void presetFloorForward() {
-        targetL1Angle = Math.toRadians(145);
-        targetL2Angle = Math.toRadians(200);
+        targetL1Angle = Math.toRadians(150);
+        targetL2Angle = Math.toRadians(210);
     }
 
     public void presetStowInCenter() {
@@ -806,8 +806,8 @@ public class AlgaeArmSystem extends SubsystemBase {
     }
 
     public void presetLowBall() {
-        targetL1Angle = Math.toRadians(80);
-        targetL2Angle = Math.toRadians(20);
+        targetL1Angle = Math.toRadians(135);
+        targetL2Angle = Math.toRadians(175);
     }
 
     public void presetHighBall() {
@@ -817,6 +817,10 @@ public class AlgaeArmSystem extends SubsystemBase {
     
     public void presetAutoScore() {
         targetL1Angle = Math.toRadians(130);
+        targetL2Angle = Math.toRadians(190);
+    }
+    public void presetProcessor() {
+        targetL1Angle = Math.toRadians(140);
         targetL2Angle = Math.toRadians(190);
     }
     
