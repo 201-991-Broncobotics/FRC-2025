@@ -38,7 +38,7 @@ public class CoralArmSystem extends SubsystemBase {
     public CoralArmSystem(String s) {
         leftElevator = new TalonFX(MotorConstants.coralLeftElevatorID);
         rightElevator = new TalonFX(MotorConstants.coralRightElevatorID);
-        coralPivot = new TalonFX(MotorConstants.coralPivotID);
+        // coralPivot = new TalonFX(MotorConstants.coralPivotID);
         TargetElevatorHeight = 0.0;
         elevatorFeedForward = new ElevatorFeedforward(CoralSystemSettings.kSE, CoralSystemSettings.kGE, CoralSystemSettings.kVE);
         armFeedforward = new ArmFeedforward(CoralSystemSettings.kSA, CoralSystemSettings.kGA, CoralSystemSettings.kVA);
@@ -121,7 +121,7 @@ public class CoralArmSystem extends SubsystemBase {
     public void periodic() {
        // TargetArmAngle= SmartDashboard.getNumber("TargetAngle", CurrentArmAngle);
 
-       /* temporary commented out because it a little bit nonexistant and it lessens clutter on dashboard
+       //temporary commented out because it a little bit nonexistant and it lessens clutter on dashboard
         
         //Smart Dashboard updates
         SmartDashboard.putNumber("Elevator", CurrentElevatorHeight);
@@ -146,7 +146,7 @@ public class CoralArmSystem extends SubsystemBase {
             SmartDashboard.getNumber("Arm kVE", CoralSystemSettings.kVE));
         }
         
-        */
+        
         
     }
     public boolean atPosition(){
