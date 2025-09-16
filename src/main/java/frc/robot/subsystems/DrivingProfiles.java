@@ -31,7 +31,7 @@ public class DrivingProfiles extends SubsystemBase {
     private final double ControllerDeadband = 0.05, JoystickDeadband = 0.1, AutoThrottleDeadband = 0.05;
 
     private double presetThrottleControl = 0.25;
-    private boolean useThrottlePreset = false, autoAiming = false, autoDriving = false;
+    private boolean useThrottlePreset = false, autoAiming = false, autoDriving = false, autoStrafing = false;
 
     private double autoForwardOutput = 0, autoStrafeOutput = 0, autoRotationOutput = 0;
 
@@ -105,6 +105,7 @@ public class DrivingProfiles extends SubsystemBase {
 
         if (autoAiming) updateAutoAiming();
         if (autoDriving) updateAutoDriving();
+        if (autoStrafing) updateAutoStrafing();
     }
 
 
@@ -191,6 +192,39 @@ public class DrivingProfiles extends SubsystemBase {
         }
     }
 
+    private void updateAutoStrafing() {
+
+        double distanceFromCenter = camera.getTX();
+        if (Math.abs(camera.getTX() - AutoTargetingSettings.leftCorrectX) <= Math.abs(camera.getTX() - AutoTargetingSettings.rightCorrectX)) {
+            distanceFromCenter = camera.getTX() - AutoTargetingSettings.leftCorrectX;
+        } else {
+            distanceFromCenter = camera.getTX() - AutoTargetingSettings.rightCorrectX;
+        }
+
+        Vector2d autoStrafingDirection = new Vector2d()
+            .withMag(AutoTargetingSettings.AutoDrivingPower * distanceFromCenter)
+            .withAngle(gyroData.yaw + Math.toRadians(90));
+
+        double throttle = 0;
+        if (preferController) {
+            if (autoThrottleControllerInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleControllerInput.getAsDouble();
+            else throttle = autoThrottleJoystickInput.getAsDouble();
+        } else {
+            if (autoThrottleJoystickInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleJoystickInput.getAsDouble();
+            else throttle = autoThrottleControllerInput.getAsDouble();
+        }
+
+
+        autoForwardOutput = autoStrafingDirection.y * throttle;
+        autoStrafeOutput = autoStrafingDirection.x * throttle;
+
+        if (AutoTargetingSettings.AutoDrivingEnabled && camera.isTargetValid()) {
+            forwardOutput += autoForwardOutput;
+            strafeOutput += autoStrafeOutput;
+        }
+
+    }
+
 
     public void stopDriving() {
         forwardOutput = 0;
@@ -211,6 +245,8 @@ public class DrivingProfiles extends SubsystemBase {
     public void disableAutoAim() { autoAiming = false; }
     public void enableAutoDriving() { autoDriving = true; }
     public void disableAutoDriving() { autoDriving = false; }
+    public void enableAutoStrafing() { autoStrafing = true; }
+    public void disableAutoStrafing() { autoStrafing = false; }
 
 
 

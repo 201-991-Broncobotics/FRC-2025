@@ -162,6 +162,9 @@ public class Settings {
 
         public static double searchingSpeed = 0.5;
 
+        public static double leftCorrectX = 0;
+        public static double rightCorrectX = 0;
+
     }
 
     public static class CoralSystemPresets {
