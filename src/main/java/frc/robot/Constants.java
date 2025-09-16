@@ -19,7 +19,7 @@ public final class Constants {
 
         
 
-        public static final int coralLeftElevatorID =10;
+        public static final int coralLeftElevatorID = 10;
         public static final int coralRightElevatorID = 11;
         public static final int coralPivotID =12;
 
@@ -52,6 +52,10 @@ public final class Constants {
         public static final double L2CoM = 15.3324520; // inches along segment length 
 
 
+    }
+
+    public static class CoralSystemConstants {
+        public static final double CoralArmGearRatio = (1.0/108.0);
     }
 
 }
