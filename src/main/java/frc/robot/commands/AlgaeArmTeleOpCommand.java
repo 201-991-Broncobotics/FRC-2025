@@ -1,6 +1,6 @@
 package frc.robot.commands;
 
-import frc.robot.subsystems.AlgaeArmSystem;
+import frc.robot.subsystems.AlgaeArm;
 
 import java.util.function.DoubleSupplier;
 
@@ -8,12 +8,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 public class AlgaeArmTeleOpCommand extends Command {
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-    private final AlgaeArmSystem algaeArmSystem;
+    private final AlgaeArm algaeArmSystem;
 
     private DoubleSupplier ArmVerticalAxisControl, ArmHorizontalAxisControl;
 
 
-    public AlgaeArmTeleOpCommand(AlgaeArmSystem subsystem, DoubleSupplier verticalAxisControl, DoubleSupplier horizontalAxisControl) {
+    public AlgaeArmTeleOpCommand(AlgaeArm subsystem, DoubleSupplier verticalAxisControl, DoubleSupplier horizontalAxisControl) {
         algaeArmSystem = subsystem;
         ArmVerticalAxisControl = verticalAxisControl;
         ArmHorizontalAxisControl = horizontalAxisControl;
@@ -28,7 +28,7 @@ public class AlgaeArmTeleOpCommand extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        algaeArmSystem.setTargetMoveSpeeds(ArmVerticalAxisControl.getAsDouble(), ArmHorizontalAxisControl.getAsDouble());
+        // algaeArmSystem.setTargetMoveSpeeds(ArmVerticalAxisControl.getAsDouble(), ArmHorizontalAxisControl.getAsDouble());
     }
 
     // Called once the command ends or is interrupted.
