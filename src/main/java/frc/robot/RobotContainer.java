@@ -33,6 +33,7 @@ import frc.robot.commands.Autonomous;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeArm;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.CoralElevatorSystem;
 import frc.robot.subsystems.DrivingProfiles;
 import frc.robot.subsystems.Vision;
 import frc.robot.utility.Functions;
@@ -60,7 +61,7 @@ public class RobotContainer {
     public final AlgaeArm algaeArm = new AlgaeArm();
     //public final ClimbingSystem climbingSystem = new ClimbingSystem();
 
-   
+   public final CoralElevatorSystem coralElevatorSystem = new CoralElevatorSystem();
 
 
     //public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
@@ -134,8 +135,9 @@ public class RobotContainer {
         drivingProfile.setUpAutoThrottleControllerInput(() -> driverJoystick.getLeftTriggerAxis());
         drivingProfile.setUpAutoThrottleJoystickInput(() -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2));
 
-        driverJoystick.leftBumper().onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
-        driverJoystick.leftTrigger().onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
+        //driverJoystick.leftBumper().onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
+        // driverJoystick.leftTrigger().onTrue(new InstantCommand(drivingProfile::enableAutoStrafing)).onFalse(new InstantCommand(drivingProfile::disableAutoStrafing));
+        drivingProfile.runAutoStrafingAtThrottle(() -> driverJoystick.getLeftTriggerAxis()); 
         new JoystickButton(driverFlightHotasOne, 1).onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
         new JoystickButton(driverFlightHotasOne, 15).onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
 
@@ -178,6 +180,9 @@ public class RobotContainer {
 
         // OPERATOR CONTROLS
 
+        coralElevatorSystem.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + ((operatorJoystick.getLeftTriggerAxis() > 0.25)? -0.5:0.0)
+        coralElevatorSystem.setManualPivotControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.05));
+
         //operatorJoystick.leftBumper().onTrue(runElevatorUp);
         //operatorJoystick.leftTrigger().onTrue(runElevatorDown);
         //operatorJoystick.rightBumper().onTrue(new InstantCommand(coralClawSystem::outtakeRoller)).onFalse(new InstantCommand(coralClawSystem::stopRoller));
@@ -190,9 +195,9 @@ public class RobotContainer {
         //operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::toggleRightBias));
         //operatorJoystick.povUp().onTrue(new InstantCommand(coralArmSystem::toggleCoralArm));
 
-        //operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
-        //operatorJoystick.y().onTrue(new InstantCommand(algaeArmSystem::enableArm));
-        //operatorJoystick.x().onTrue(new InstantCommand(algaeArmSystem::stopArm));
+        // operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
+        operatorJoystick.y().toggleOnTrue(new InstantCommand(coralElevatorSystem::ToggleEnabled));
+        operatorJoystick.x().toggleOnTrue(new InstantCommand(coralElevatorSystem::ArmToggleEnabled));
 
         //operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
         //operatorJoystick.povUp().onTrue(new InstantCommand(algaeArmSystem::presetLowBall));
@@ -230,18 +235,14 @@ public class RobotContainer {
         //operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToCoralStationPreset)).toggleOnFalse(new InstantCommand(coralClaw::goToElevatorPreset));
         
         // Algae
-        algaeArm.setManualControl(() -> -Functions.deadbandValue(-1 * operatorJoystick.getRightY(),  0.7));
+        algaeArm.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getRightY(),  0.1));
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArm::outtakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::stopRoller));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArm::intakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::holdRoller));
 
         operatorJoystick.x().onTrue(new InstantCommand(algaeArm::presetOuttakePosition));
         operatorJoystick.y().onTrue(new InstantCommand(algaeArm::presetStorePosition));
         operatorJoystick.b().onTrue(new InstantCommand(algaeArm::presetIntakePosition));
-        operatorJoystick.a().toggleOnTrue(new InstantCommand(algaeArm::toggleEnabled));
-
-
-        operatorJoystick.povDown().onTrue(new InstantCommand(algaeArm::disableLimits)); //.onFalse(new InstantCommand(algaeArm::enableLimits));
-        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArm::resetLimits));
+        //operatorJoystick.a().toggleOnTrue(new InstantCommand(coralClaw::toggleEnabled));
 
 
         //coralClaw.setDefaultCommand(new RunCommand(coralClaw::update, coralClaw));

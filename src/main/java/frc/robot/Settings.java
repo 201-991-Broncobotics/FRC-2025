@@ -3,6 +3,9 @@ package frc.robot;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import frc.robot.Constants.AlgaeArmConstants;
+import frc.robot.utility.CoralSystemPreset;
+import frc.robot.utility.PIDControllerSettingsReference;
+
 
 /**
  * The point of this class is to house all the variables that may need to be tuned or changed
@@ -13,22 +16,57 @@ public class Settings {
     public static boolean tuningTelemetryEnabled = true;
 
     public static class CoralSystemSettings {
-        public static double kSE = 0.0001;
-        public static double kGE = 0.00;
-        public static double kVE = 0.1;
 
-        public static double kSA = 0.001; // 0.001
-        public static double kGA = 0.05; // 0.05
-        public static double kVA = 0.05; // 0.05
-
-        public static double elevatorTolerance =4;
+        // public static double elevatorTolerance =.8;
         public static double armTolerance =5;
-        public static double elevatorSpeedControl =1;
+        // public static double elevatorSpeedControl =1;
+        public static double elevatorRotationsToInches =(1.0/20.0)/*gear ratio*/ *(1.757*Math.PI/*circumference of the sprocket's pitch*/)*2;
 
-        public static double coralClawStowedAngle = 90;
+        public static double startingPosition = 0;
+        public static double maxHeight = 50;
+        public static double minHeight = 0;
+
+        public static PIDControllerSettingsReference ElevatorReferencePID = new PIDControllerSettingsReference(
+                0,
+                0,
+                0,
+                0,
+                minHeight,
+                maxHeight,
+                0,
+                1,
+                0,
+                0,
+                0,
+                .8,
+                0,
+                0,
+                true,
+                false);
+
+        
+
+        public static double manualControlSpeed = 25; // max speed in inches per second 
+
+
+        public static double delayBeforeStaging = 750; // milliseconds that after holding the change stage button, will cause it to skip to max/min stage
+
+
+        public static double lowerLiftRange = Math.toRadians(-85); // range where the pivot is stopped and the elevator is moved up to prevent collisions
+        public static double upperLiftRange = Math.toRadians(-45);
+        public static double liftRangeHeight = 10;
+
     }
 
     public static class CoralClawSettings {
+
+        public static int CoralPivotCurrentLimit = 20;
+        public static PIDController CoralPivotPID = new PIDController(0.0, 0, 0); // 0, 0, 0
+        public static double maxAngle = 180;
+        public static double minAngle = -120;
+        public static double manualPivotSpeed = Math.toRadians(60); // radians per second
+
+
         public static double startRoll = 0;
         public static double startPitch = 0;
 
@@ -111,6 +149,22 @@ public class Settings {
         public static double targetPercentageOfVisionBlocked = 0.2;
 
         public static double searchingSpeed = 0.5;
+
+        public static double leftCorrectX = 0;
+        public static double rightCorrectX = 0;
+
+    }
+
+    public static class CoralSystemPresets {
+
+        // Elevator Height (inches), Diffy Pitch (degrees), Diffy Roll (degrees)
+        public static CoralSystemPreset GroundIntake = new CoralSystemPreset(0, -27);
+        public static CoralSystemPreset CoralStationIntake = new CoralSystemPreset(11, 75);
+        public static CoralSystemPreset L4Reef = new CoralSystemPreset(50, 85);
+        public static CoralSystemPreset L3Reef = new CoralSystemPreset(35, 55);
+        public static CoralSystemPreset L2Reef = new CoralSystemPreset(25, 55);
+        public static CoralSystemPreset L1Reef = new CoralSystemPreset(0, 80);
+        public static CoralSystemPreset Stowed = new CoralSystemPreset(0, -90);
 
     }
 }
