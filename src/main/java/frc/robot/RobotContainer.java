@@ -138,7 +138,8 @@ public class RobotContainer {
         drivingProfile.setUpAutoThrottleJoystickInput(() -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2));
 
         //driverJoystick.leftBumper().onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
-        driverJoystick.leftTrigger().onTrue(new InstantCommand(drivingProfile::enableAutoStrafing)).onFalse(new InstantCommand(drivingProfile::disableAutoStrafing));
+        // driverJoystick.leftTrigger().onTrue(new InstantCommand(drivingProfile::enableAutoStrafing)).onFalse(new InstantCommand(drivingProfile::disableAutoStrafing));
+        drivingProfile.runAutoStrafingAtThrottle(() -> driverJoystick.getLeftTriggerAxis()); 
         new JoystickButton(driverFlightHotasOne, 1).onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
         new JoystickButton(driverFlightHotasOne, 15).onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
 

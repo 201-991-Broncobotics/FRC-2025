@@ -41,6 +41,9 @@ public class DrivingProfiles extends SubsystemBase {
 
     private Vision camera;
 
+    private boolean useAutoDrivingThrottle = false;
+    private DoubleSupplier AutoDrivingThrottle;
+
 
     public DrivingProfiles(Vision vision, boolean PreferController) {
         this.camera = vision;
@@ -102,6 +105,8 @@ public class DrivingProfiles extends SubsystemBase {
             else if (updateController());
             else stopDriving();
         }
+
+        if (useAutoDrivingThrottle) autoStrafing = (AutoDrivingThrottle.getAsDouble() > 0.1);
 
         if (autoAiming) updateAutoAiming();
         if (autoDriving) updateAutoDriving();
@@ -187,8 +192,8 @@ public class DrivingProfiles extends SubsystemBase {
         autoStrafeOutput = autoDrivingDirection.x * throttle;
 
         if (AutoTargetingSettings.AutoDrivingEnabled && camera.isTargetValid()) {
-            forwardOutput += autoForwardOutput;
-            strafeOutput += autoStrafeOutput;
+            forwardOutput += autoForwardOutput * AutoDrivingThrottle.getAsDouble();
+            strafeOutput += autoStrafeOutput * AutoDrivingThrottle.getAsDouble();
         }
     }
 
@@ -219,8 +224,8 @@ public class DrivingProfiles extends SubsystemBase {
         autoStrafeOutput = autoStrafingDirection.x * throttle;
 
         if (AutoTargetingSettings.AutoDrivingEnabled && camera.isTargetValid()) {
-            forwardOutput += autoForwardOutput;
-            strafeOutput += autoStrafeOutput;
+            forwardOutput += autoForwardOutput * AutoDrivingThrottle.getAsDouble();
+            strafeOutput += autoStrafeOutput * AutoDrivingThrottle.getAsDouble();
         }
 
     }
@@ -247,6 +252,11 @@ public class DrivingProfiles extends SubsystemBase {
     public void disableAutoDriving() { autoDriving = false; }
     public void enableAutoStrafing() { autoStrafing = true; }
     public void disableAutoStrafing() { autoStrafing = false; }
+
+    public void runAutoStrafingAtThrottle(DoubleSupplier AutoThrottle) {
+        useAutoDrivingThrottle = true;
+        AutoDrivingThrottle = AutoThrottle;
+    }
 
 
 
