@@ -15,18 +15,10 @@ package frc.robot;
 public final class Constants {
     public static class MotorConstants{
 
-        public static final int algaePivotID = 12;
-
-        public static final int coralLeftElevatorID =10;
-        public static final int coralRightElevatorID = 11;
-        public static final int coralPivotID =12;
+        public static final int algaePivotID = 11;
 
         // NEOs
-        public static final int algaeRollerID = 23;
-        public static final int leftDiffyID = 1; // disabled
-        public static final int rightDiffyID = 20; // disabled
-        public static final int coralRollerID = 23; // disabled
-        public static final int climbingMotorID = 23;
+        public static final int algaeRollerID = 19;
     }
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;

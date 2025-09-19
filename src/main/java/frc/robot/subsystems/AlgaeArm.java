@@ -47,6 +47,13 @@ public class AlgaeArm extends SubsystemBase {
     private double setPresetPosition = AlgaeArmSettings.PresetPickupAngle;
     private double presetTolerance = Math.toRadians(10); // radians
 
+    private double offset = 0;
+
+    private boolean useLimits = true;
+
+    private double holdPosition = 0;
+    private boolean holdingPosition = false;
+
 
     public AlgaeArm() {
         runTime = new ElapsedTime(Resolution.SECONDS);
@@ -59,7 +66,7 @@ public class AlgaeArm extends SubsystemBase {
         pivotMotor = new TalonFX(MotorConstants.algaePivotID);
         pivotMotor.setNeutralMode(NeutralModeValue.Coast);
         algaeRoller = new SparkFlex(MotorConstants.algaeRollerID, MotorType.kBrushless);
-        algaeRollerConfig.idleMode(IdleMode.kCoast);
+        algaeRollerConfig.idleMode(IdleMode.kBrake);
         algaeRollerConfig.smartCurrentLimit(AlgaeArmSettings.algaeRollerStallCurrent);
         algaeRoller.configure(algaeRollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -75,6 +82,10 @@ public class AlgaeArm extends SubsystemBase {
         SmartDashboard.putNumber("Tune Algae Pivot kI", AlgaeArmSettings.AlgaePivotPID.getI());
         SmartDashboard.putNumber("Tune Algae Pivot kD", AlgaeArmSettings.AlgaePivotPID.getD());
 
+        SmartDashboard.putNumber("Tune Algae Roller kP", AlgaeArmSettings.AlgaeRollerPID.getP());
+        SmartDashboard.putNumber("Tune Algae Roller kI", AlgaeArmSettings.AlgaeRollerPID.getI());
+        SmartDashboard.putNumber("Tune Algae Roller kD", AlgaeArmSettings.AlgaeRollerPID.getD());
+
     }
 
 
@@ -89,9 +100,9 @@ public class AlgaeArm extends SubsystemBase {
         }
         
 
-        TargetPivotAngle = Functions.minMaxValue(AlgaeArmSettings.MinPivotAngle, AlgaeArmSettings.MaxPivotAngle, TargetPivotAngle);
+        if (useLimits) TargetPivotAngle = Functions.minMaxValue(AlgaeArmSettings.MinPivotAngle, AlgaeArmSettings.MaxPivotAngle, TargetPivotAngle);
 
-        double currentPivotAngle = algaePivotEncoder.getAsDouble();
+        double currentPivotAngle = algaePivotEncoder.getAsDouble() - offset;
         PivotMotorPower = AlgaeArmSettings.AlgaePivotPID.calculate(algaePivotEncoder.getAsDouble(), TargetPivotAngle) + AlgaeArmSettings.gravityPower * Math.sin(currentPivotAngle) + (gyroData.accelX * AlgaeArmSettings.gravityPower * Math.cos(currentPivotAngle) * (AlgaeArmSettings.useDriveCompensation? 1.0:0.0));
 
         //if (algaeRoller.getOutputCurrent() > AlgaeArmSettings.algaeRollerHasIntakedCurrent && AlgaeRollerPower == AlgaeArmSettings.IntakePower) {
@@ -121,10 +132,16 @@ public class AlgaeArm extends SubsystemBase {
         SmartDashboard.putNumber("Algae Roller Power", AlgaeRollerPower);
         SmartDashboard.putNumber("Algae Roller Motor Current", algaeRoller.getOutputCurrent());
 
+        SmartDashboard.putBoolean("Is Algae Arm Enabled:", enabled);
+
 
         AlgaeArmSettings.AlgaePivotPID.setP(SmartDashboard.getNumber("Tune Algae Pivot kP", AlgaeArmSettings.AlgaePivotPID.getP()));
         AlgaeArmSettings.AlgaePivotPID.setI(SmartDashboard.getNumber("Tune Algae Pivot kI", AlgaeArmSettings.AlgaePivotPID.getI()));
         AlgaeArmSettings.AlgaePivotPID.setD(SmartDashboard.getNumber("Tune Algae Pivot kD", AlgaeArmSettings.AlgaePivotPID.getD()));
+
+        AlgaeArmSettings.AlgaeRollerPID.setP(SmartDashboard.getNumber("Tune Algae Roller kP", AlgaeArmSettings.AlgaeRollerPID.getP()));
+        AlgaeArmSettings.AlgaeRollerPID.setI(SmartDashboard.getNumber("Tune Algae Roller kI", AlgaeArmSettings.AlgaeRollerPID.getI()));
+        AlgaeArmSettings.AlgaeRollerPID.setD(SmartDashboard.getNumber("Tune Algae Roller kD", AlgaeArmSettings.AlgaeRollerPID.getD()));
 
     }
 
@@ -133,17 +150,21 @@ public class AlgaeArm extends SubsystemBase {
     public void Disable() { enabled = false; }
     public void toggleEnabled() { enabled = !enabled; }
 
+    public void disableLimits() { useLimits = false; }
+    public void enableLimits() { useLimits = true; }
+    public void resetLimits() { offset = algaePivotEncoder.getAsDouble() - 180; }
+
 
     public void presetIntakePosition() {
         TargetPivotAngle = AlgaeArmSettings.PresetPickupAngle;
-        AlgaeRollerPower = AlgaeArmSettings.IntakePower;
+        // AlgaeRollerPower = AlgaeArmSettings.IntakePower;
 
         setPresetPosition = AlgaeArmSettings.PresetPickupAngle;
     }
 
     public void presetStorePosition() {
         TargetPivotAngle = AlgaeArmSettings.PresetStoredAngle;
-        AlgaeRollerPower = AlgaeArmSettings.HoldPower;
+        //AlgaeRollerPower = AlgaeArmSettings.HoldPower;
 
         setPresetPosition = AlgaeArmSettings.PresetStoredAngle;
     }
@@ -166,7 +187,11 @@ public class AlgaeArm extends SubsystemBase {
 
     public void stopRoller() { AlgaeRollerPower = 0; }
     public void intakeRoller() { AlgaeRollerPower = AlgaeArmSettings.IntakePower; }
-    public void holdRoller() { AlgaeRollerPower = AlgaeArmSettings.HoldPower; }
+    public void holdRoller() { 
+        // holdPosition = true;
+        holdingPosition = true;
+    }
+    public void stopHolding() { holdingPosition = false; }
     public void outtakeRoller() { AlgaeRollerPower = AlgaeArmSettings.OuttakePower; }
 
 

@@ -30,20 +30,16 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.commands.AlgaeArmTeleOpCommand;
 import frc.robot.commands.Autonomous;
-import frc.robot.commands.CoralArmTeleOpCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeArm;
-import frc.robot.subsystems.ClimbingSystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.CoralArmSystem;
-import frc.robot.subsystems.FalconCoralClaw;
 import frc.robot.subsystems.DrivingProfiles;
 import frc.robot.subsystems.Vision;
 import frc.robot.utility.Functions;
 
 public class RobotContainer {
     public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    public static double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    public static double MaxAngularRate = RotationsPerSecond.of(1.0).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -166,8 +162,8 @@ public class RobotContainer {
         //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
         //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
 
-        new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-        new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+        //new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
+        //new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -234,20 +230,24 @@ public class RobotContainer {
         //operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToCoralStationPreset)).toggleOnFalse(new InstantCommand(coralClaw::goToElevatorPreset));
         
         // Algae
-        algaeArm.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getRightY(),  0.1));
+        algaeArm.setManualControl(() -> -Functions.deadbandValue(-1 * operatorJoystick.getRightY(),  0.7));
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArm::outtakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::stopRoller));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArm::intakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::holdRoller));
 
         operatorJoystick.x().onTrue(new InstantCommand(algaeArm::presetOuttakePosition));
         operatorJoystick.y().onTrue(new InstantCommand(algaeArm::presetStorePosition));
         operatorJoystick.b().onTrue(new InstantCommand(algaeArm::presetIntakePosition));
-        //operatorJoystick.a().toggleOnTrue(new InstantCommand(coralClaw::toggleEnabled));
+        operatorJoystick.a().toggleOnTrue(new InstantCommand(algaeArm::toggleEnabled));
+
+
+        operatorJoystick.povDown().onTrue(new InstantCommand(algaeArm::disableLimits)); //.onFalse(new InstantCommand(algaeArm::enableLimits));
+        operatorJoystick.povUp().onTrue(new InstantCommand(algaeArm::resetLimits));
 
 
         //coralClaw.setDefaultCommand(new RunCommand(coralClaw::update, coralClaw));
         //coralElevatorSystem.setDefaultCommand(new RunCommand(coralElevatorSystem::update, coralElevatorSystem));
         algaeArm.setDefaultCommand(new RunCommand(algaeArm::update, algaeArm));
-        climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
+        //climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
         
     }

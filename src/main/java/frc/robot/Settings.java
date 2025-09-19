@@ -72,7 +72,7 @@ public class Settings {
 
     public static class AlgaeArmSettings {
 
-        public static double AlgaePivotStartAngle = Math.toRadians(135); // 150 before elevator support
+        public static double AlgaePivotStartAngle = Math.toRadians(180); // 150 before elevator support
 
         // Presets
         public static double PresetPickupAngle = Math.toRadians(25);
@@ -80,19 +80,20 @@ public class Settings {
         public static double PresetOuttakeAngle = Math.toRadians(80);
 
         // Limits
-        public static double MaxPivotAngle = Math.toRadians(120);
+        public static double MaxPivotAngle = Math.toRadians(180);
         public static double MinPivotAngle = Math.toRadians(0);
 
-        public static PIDController AlgaePivotPID = new PIDController(0.17, 0, 0); // 0, 0, 0
+        public static PIDController AlgaePivotPID = new PIDController(0.18, 0, 0); // 0, 0, 0
+        public static PIDController AlgaeRollerPID = new PIDController(0.0, 0, 0); // 0, 0, 0
         
-        public static double IntakePower = 0.7;
-        public static double HoldPower = 0.25;
-        public static double OuttakePower = -0.8;
+        public static double IntakePower = 0.4;
+        public static double HoldPower = 0.2;
+        public static double OuttakePower = -0.6;
 
         public static int algaeRollerHasIntakedCurrent = 40;
-        public static int algaeRollerStallCurrent = 30;
+        public static int algaeRollerStallCurrent = 22;
 
-        public static double manualControlSpeed = Math.toRadians(90); // max speed in radians per second 
+        public static double manualControlSpeed = Math.toRadians(105); // max speed in radians per second 
         
         // gravity power
         public static double gravityPower = 0.0;
