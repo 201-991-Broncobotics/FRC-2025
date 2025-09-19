@@ -13,6 +13,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Settings.AlgaeArmSettings;
@@ -23,6 +24,8 @@ import frc.robot.utility.CoralSystemPreset;
 import frc.robot.utility.ElapsedTime;
 import frc.robot.utility.Functions;
 import frc.robot.utility.ElapsedTime.Resolution;
+import frc.robot.utility.AdvancedPIDController;
+import frc.robot.utility.PIDControllerSettingsReference;
 import frc.robot.Constants.CoralSystemConstants;
 import frc.robot.Constants.MotorConstants;
 
@@ -30,7 +33,7 @@ public class CoralElevatorSystem extends SubsystemBase {
     public static int ElevatorStage;
 
     private double TargetElevatorHeight, ElevatorError;
-    private double CurrentElevatorHeight;
+    private DoubleSupplier CurrentElevatorHeight;
 
     private ElevatorFeedforward elevatorFeedForward;
 
@@ -65,6 +68,10 @@ public class CoralElevatorSystem extends SubsystemBase {
 
     private DoubleSupplier ManualPivotControl;
 
+    private AdvancedPIDController ElevatorPID;
+
+    private double ElevatorPower = 0;
+
 
     //temp
     //private DoubleSupplier testEle;
@@ -82,18 +89,25 @@ public class CoralElevatorSystem extends SubsystemBase {
         elevatorPivot.configure(elevatorPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         CurrentArmAngle = () -> CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getEncoder().getPosition() - PivotArmOffset;
+        CurrentElevatorHeight = () -> elevatorR.getPosition().getValueAsDouble()*CoralSystemSettings.elevatorRotationsToInches;
         PivotArmOffset = CurrentArmAngle.getAsDouble() - (-90);
 
 
         TargetElevatorHeight = 0.0;
-        elevatorFeedForward = new ElevatorFeedforward(CoralSystemSettings.kSE, CoralSystemSettings.kGE, CoralSystemSettings.kVE);
+        // elevatorFeedForward = new ElevatorFeedforward(CoralSystemSettings.kSE, CoralSystemSettings.kGE, CoralSystemSettings.kVE);
+        ElevatorPID = new AdvancedPIDController(0, 0, 0, CurrentElevatorHeight);
+        ElevatorPID.setSettingsTheSameAs(CoralSystemSettings.ElevatorReferencePID);
 
         runTime = new ElapsedTime(Resolution.SECONDS);
 
         //put numbers so we can grab latter brr
-        SmartDashboard.putNumber("Ele kSE", CoralSystemSettings.kSA);
-        SmartDashboard.putNumber("Ele kGE", CoralSystemSettings.kGA);
-        SmartDashboard.putNumber("Ele kVE", CoralSystemSettings.kVA);
+        SmartDashboard.putNumber("ElevatorPID kP", CoralSystemSettings.ElevatorReferencePID.kP);
+        SmartDashboard.putNumber("ElevatorPID kD", CoralSystemSettings.ElevatorReferencePID.kD);
+        SmartDashboard.putNumber("ElevatorPID max pos", CoralSystemSettings.ElevatorReferencePID.maxPosition);
+        SmartDashboard.putNumber("ElevatorPID max power", CoralSystemSettings.ElevatorReferencePID.maxPower);
+        SmartDashboard.putNumber("ElevatorPID max speed", CoralSystemSettings.ElevatorReferencePID.maxSpeed);
+        SmartDashboard.putNumber("ElevatorPID max accel", CoralSystemSettings.ElevatorReferencePID.maxAcceleration);
+        SmartDashboard.putNumber("ElevatorPID max decel", CoralSystemSettings.ElevatorReferencePID.maxDeceleration);
         SmartDashboard.putNumber("Target Pivot Angle", Math.toDegrees(TargetArmAngle));
         SmartDashboard.putNumber("Current Pivot Angle", Math.toDegrees(CurrentArmAngle.getAsDouble()));
 
@@ -115,6 +129,20 @@ public class CoralElevatorSystem extends SubsystemBase {
     public void update() {
         //if(testEle!=null){ elevator.set(-testEle.getAsDouble()); }
 
+        // limits
+        TargetElevatorHeight = Functions.minMaxValue(CoralSystemSettings.minHeight, CoralSystemSettings.maxHeight, TargetElevatorHeight);
+
+        //Calculate error
+        ElevatorError=TargetElevatorHeight-CurrentElevatorHeight.getAsDouble();
+        
+        //Move motor
+        ElevatorPID.setTarget(TargetElevatorHeight);
+        if (enabled) ElevatorPower = ElevatorPID.getPower();
+        else ElevatorPower = 0;
+
+        elevatorR.set(ElevatorPower);
+        elevatorL.set(ElevatorPower);
+
         if (!GoToPosition) {
 
             /* 
@@ -127,8 +155,8 @@ public class CoralElevatorSystem extends SubsystemBase {
             }
                 */
 
-            //if (Math.abs(ManualControlAxis.getAsDouble()) > overrideOverrideTolerance && overrideManualControl) overrideManualControl = false;
-            //if (!overrideManualControl) TargetElevatorHeight += ManualControlAxis.getAsDouble() * CoralSystemSettings.manualControlSpeed * frameTime;
+            if (Math.abs(ManualControlAxis.getAsDouble()) > overrideOverrideTolerance && overrideManualControl) overrideManualControl = false;
+            if (!overrideManualControl) TargetElevatorHeight += ManualControlAxis.getAsDouble() * CoralSystemSettings.manualControlSpeed * frameTime;
         } else {
             if (Math.abs(ManualControlAxis.getAsDouble() - lastManualControl) > overrideOverrideTolerance && overrideManualControl) overrideManualControl = false;
             if (!overrideManualControl) TargetElevatorHeight = ManualControlAxis.getAsDouble() * (CoralSystemSettings.maxHeight - CoralSystemSettings.minHeight) + CoralSystemSettings.minHeight;
@@ -149,6 +177,15 @@ public class CoralElevatorSystem extends SubsystemBase {
         
         
         if (pivotEnabled) {
+
+            if (TargetArmAngle >= CoralSystemSettings.lowerLiftRange && TargetArmAngle <= CoralSystemSettings.upperLiftRange && TargetElevatorHeight < CoralSystemSettings.liftRangeHeight && CurrentElevatorHeight.getAsDouble() < CoralSystemSettings.liftRangeHeight - 2) {
+                if (Math.abs(TargetArmAngle - CoralSystemSettings.lowerLiftRange) < Math.abs(TargetArmAngle - CoralSystemSettings.upperLiftRange)) TargetArmAngle = CoralSystemSettings.lowerLiftRange;
+                else TargetArmAngle = CoralSystemSettings.upperLiftRange;
+
+                TargetElevatorHeight = CoralSystemSettings.liftRangeHeight;
+            }
+
+
             if (Math.abs(ManualPivotControl.getAsDouble()) >= 0.05) TargetArmAngle += CoralClawSettings.manualPivotSpeed * ManualPivotControl.getAsDouble() * frameTime;
             elevatorPivot.set(CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle));
         } else {
@@ -157,33 +194,7 @@ public class CoralElevatorSystem extends SubsystemBase {
         }
         
         TargetArmAngle = Functions.minMaxValue(CoralClawSettings.minAngle, CoralClawSettings.maxAngle, TargetArmAngle);
-      
-        //Update elevator position
-        if (-elevatorR.getPosition().getValueAsDouble()<0) 
-            CurrentElevatorHeight = 0;
-        else CurrentElevatorHeight = -elevatorR.getPosition().getValueAsDouble()*CoralSystemSettings.elevatorRotationsToInches; //add offset later
 
-        // limits
-        TargetElevatorHeight = Functions.minMaxValue(CoralSystemSettings.minHeight, CoralSystemSettings.maxHeight, TargetElevatorHeight);
-
-        //Calculate error
-        ElevatorError=TargetElevatorHeight-CurrentElevatorHeight;
-        
-        //Move motor
-        if (enabled) {
-            if(Math.abs(ElevatorError)<CoralSystemSettings.elevatorTolerance) {
-                elevatorR.setVoltage(-elevatorFeedForward.calculate(0));
-                elevatorL.setVoltage(-elevatorFeedForward.calculate(0));
-            } else{
-                elevatorR.setVoltage(-elevatorFeedForward.calculate(ElevatorError/CoralSystemSettings.elevatorSpeedControl));
-                elevatorL.setVoltage(-elevatorFeedForward.calculate(ElevatorError/CoralSystemSettings.elevatorSpeedControl));
-            }
-        } else {
-            elevatorR.setVoltage(0);
-            elevatorL.setVoltage(0);
-        }
-        
-        
     }
 
 
@@ -193,12 +204,10 @@ public class CoralElevatorSystem extends SubsystemBase {
         runTime.reset();
         
         //Smart Dashboard updates
-        SmartDashboard.putNumber("ElevatorHeight", CurrentElevatorHeight);
+        SmartDashboard.putNumber("ElevatorHeight", CurrentElevatorHeight.getAsDouble());
         SmartDashboard.putNumber("TargetEle", TargetElevatorHeight);
-        SmartDashboard.putNumber("PowertoElevator",  elevatorFeedForward.calculate(ElevatorError/CoralSystemSettings.elevatorSpeedControl));
-        SmartDashboard.putString( "actual values ele", ""+elevatorFeedForward.getKs()+" "+elevatorFeedForward.getKg()+" "+elevatorFeedForward.getKv());
+        SmartDashboard.putNumber("PowertoElevator",  ElevatorPower);
        // SmartDashboard.putString("test", testString);//hahahaahahaha I AM DEFINITLY OKAY RIGHT NOW
-        SmartDashboard.putNumber("Left ElevatorAct ", elevatorR.getPosition().getValueAsDouble());
 
 
         CoralClawSettings.CoralPivotPID.setP(SmartDashboard.getNumber("Tune Coral Pivot kP", CoralClawSettings.CoralPivotPID.getP()));
@@ -209,22 +218,18 @@ public class CoralElevatorSystem extends SubsystemBase {
         SmartDashboard.putNumber("Current Pivot Angle", Math.toDegrees(CurrentArmAngle.getAsDouble()));
         
         //update ff
-        boolean check1 = elevatorFeedForward.getKs()!=SmartDashboard.getNumber("Ele kSE", CoralSystemSettings.kSE);
-        boolean check2 = elevatorFeedForward.getKg()!=SmartDashboard.getNumber("Ele kGE", CoralSystemSettings.kGE);
-        boolean check3 = elevatorFeedForward.getKv()!=SmartDashboard.getNumber("Ele kVE", CoralSystemSettings.kVE);
-        if(check1 || check2 || check3){
-            SmartDashboard.putString( "stuff", "e");
-            elevatorFeedForward = new ElevatorFeedforward(
-            SmartDashboard.getNumber("Ele kSE", CoralSystemSettings.kSE), 
-            SmartDashboard.getNumber("Ele kGE", CoralSystemSettings.kGE), 
-            SmartDashboard.getNumber("Ele kVE", CoralSystemSettings.kVE));
-        }
-        
+        CoralSystemSettings.ElevatorReferencePID.kP = SmartDashboard.getNumber("ElevatorPID kP", CoralSystemSettings.ElevatorReferencePID.kP);
+        CoralSystemSettings.ElevatorReferencePID.kD = SmartDashboard.getNumber("ElevatorPID kD", CoralSystemSettings.ElevatorReferencePID.kD);
+        CoralSystemSettings.ElevatorReferencePID.maxPosition = SmartDashboard.getNumber("ElevatorPID max pos", CoralSystemSettings.ElevatorReferencePID.maxPosition);
+        CoralSystemSettings.ElevatorReferencePID.maxPower = SmartDashboard.getNumber("ElevatorPID max power", CoralSystemSettings.ElevatorReferencePID.maxPower);
+        CoralSystemSettings.ElevatorReferencePID.maxSpeed = SmartDashboard.getNumber("ElevatorPID max speed", CoralSystemSettings.ElevatorReferencePID.maxSpeed);
+        CoralSystemSettings.ElevatorReferencePID.maxAcceleration = SmartDashboard.getNumber("ElevatorPID max accel", CoralSystemSettings.ElevatorReferencePID.maxAcceleration);
+        CoralSystemSettings.ElevatorReferencePID.maxDeceleration = SmartDashboard.getNumber("ElevatorPID max decel", CoralSystemSettings.ElevatorReferencePID.maxDeceleration);
+        ElevatorPID.setSettingsTheSameAs(CoralSystemSettings.ElevatorReferencePID);
         
     }
     public boolean atPosition(){
-        if(Math.abs(ElevatorError)<CoralSystemSettings.elevatorTolerance) return true;
-        return false;
+        return ElevatorPID.closeEnough();
     }
     public int getStage(){
         return ElevatorStage;

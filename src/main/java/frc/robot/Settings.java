@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import frc.robot.Constants.AlgaeArmConstants;
 import frc.robot.utility.CoralSystemPreset;
+import frc.robot.utility.PIDControllerSettingsReference;
 
 
 /**
@@ -15,27 +16,45 @@ public class Settings {
     public static boolean tuningTelemetryEnabled = true;
 
     public static class CoralSystemSettings {
-        public static double kSE = 0.0; // 0.001
-        public static double kGE = 0.0; // 0.3
-        public static double kVE = 0.0; // 0.9
 
-        public static double kSA = 0.0; //0.001
-        public static double kGA = 0.0; //0.05
-        public static double kVA = 0.0; //0.05
-
-        public static double elevatorTolerance =.8;
+        // public static double elevatorTolerance =.8;
         public static double armTolerance =5;
-        public static double elevatorSpeedControl =1;
+        // public static double elevatorSpeedControl =1;
         public static double elevatorRotationsToInches =(1.0/20.0)/*gear ratio*/ *(1.757*Math.PI/*circumference of the sprocket's pitch*/)*2;
 
         public static double startingPosition = 0;
         public static double maxHeight = 50;
         public static double minHeight = 0;
 
+        public static PIDControllerSettingsReference ElevatorReferencePID = new PIDControllerSettingsReference(
+                0,
+                0,
+                0,
+                0,
+                minHeight,
+                maxHeight,
+                0,
+                1,
+                0,
+                0,
+                0,
+                .8,
+                0,
+                0,
+                true,
+                false);
+
+        
+
         public static double manualControlSpeed = 25; // max speed in inches per second 
 
 
         public static double delayBeforeStaging = 750; // milliseconds that after holding the change stage button, will cause it to skip to max/min stage
+
+
+        public static double lowerLiftRange = Math.toRadians(-85); // range where the pivot is stopped and the elevator is moved up to prevent collisions
+        public static double upperLiftRange = Math.toRadians(-45);
+        public static double liftRangeHeight = 10;
 
     }
 

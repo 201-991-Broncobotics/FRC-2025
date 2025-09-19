@@ -181,7 +181,7 @@ public class RobotContainer {
 
         // OPERATOR CONTROLS
 
-        coralElevatorSystem.setManualControl(() -> ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + ((operatorJoystick.getLeftTriggerAxis() > 0.25)? -0.5:0.0)); //-Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1));
+        coralElevatorSystem.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + ((operatorJoystick.getLeftTriggerAxis() > 0.25)? -0.5:0.0)
         coralElevatorSystem.setManualPivotControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.05));
 
         //operatorJoystick.leftBumper().onTrue(runElevatorUp);
@@ -236,13 +236,13 @@ public class RobotContainer {
         //operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToCoralStationPreset)).toggleOnFalse(new InstantCommand(coralClaw::goToElevatorPreset));
         
         // Algae
-        algaeArm.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getRightY(),  0.1));
+        algaeArm.setManualControl(() -> ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + (Functions.deadbandValue(operatorJoystick.getLeftTriggerAxis(), 0.1)));// -Functions.deadbandValue(operatorJoystick.getRightY(),  0.1));
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArm::outtakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::stopRoller));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArm::intakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::holdRoller));
 
-        operatorJoystick.x().onTrue(new InstantCommand(algaeArm::presetOuttakePosition));
-        operatorJoystick.y().onTrue(new InstantCommand(algaeArm::presetStorePosition));
-        operatorJoystick.b().onTrue(new InstantCommand(algaeArm::presetIntakePosition));
+        //operatorJoystick.x().onTrue(new InstantCommand(algaeArm::presetOuttakePosition));
+        //operatorJoystick.y().onTrue(new InstantCommand(algaeArm::presetStorePosition));
+        //operatorJoystick.b().onTrue(new InstantCommand(algaeArm::presetIntakePosition));
         //operatorJoystick.a().toggleOnTrue(new InstantCommand(coralClaw::toggleEnabled));
 
 
