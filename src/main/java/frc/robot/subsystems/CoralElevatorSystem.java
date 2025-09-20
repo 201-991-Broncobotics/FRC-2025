@@ -7,13 +7,13 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Settings.AlgaeArmSettings;
@@ -42,7 +42,7 @@ public class CoralElevatorSystem extends SubsystemBase {
     private SparkMaxConfig elevatorPivotConfig;
 
     private DoubleSupplier CurrentArmAngle;
-    private double TargetArmAngle = Math.toRadians(-90);
+    private double TargetArmAngle = Math.toRadians(90);
     private double PivotArmOffset = 0;
 
     private ElapsedTime runTime;
@@ -64,13 +64,15 @@ public class CoralElevatorSystem extends SubsystemBase {
     private boolean lastWasStagingUp = false;
 
     private boolean enabled = false;
-    private boolean pivotEnabled = false;
+    private boolean pivotEnabled = true;
 
     private DoubleSupplier ManualPivotControl;
 
     private AdvancedPIDController ElevatorPID;
 
     private double ElevatorPower = 0;
+
+    private double PivotPower = 0;
 
 
     //temp
@@ -83,14 +85,15 @@ public class CoralElevatorSystem extends SubsystemBase {
         elevatorR.setNeutralMode(NeutralModeValue.Brake);
         elevatorL.setNeutralMode(NeutralModeValue.Brake);
 
+        elevatorPivot = new SparkMax(MotorConstants.coralPivotID, MotorType.kBrushless);
         elevatorPivotConfig = new SparkMaxConfig();
         elevatorPivotConfig.idleMode(IdleMode.kBrake);
         elevatorPivotConfig.smartCurrentLimit(CoralClawSettings.CoralPivotCurrentLimit);
         elevatorPivot.configure(elevatorPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        CurrentArmAngle = () -> CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getEncoder().getPosition() - PivotArmOffset;
+        CurrentArmAngle = () -> 2 * Math.PI * CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getEncoder().getPosition() - PivotArmOffset;
         CurrentElevatorHeight = () -> elevatorR.getPosition().getValueAsDouble()*CoralSystemSettings.elevatorRotationsToInches;
-        PivotArmOffset = CurrentArmAngle.getAsDouble() - (-90);
+        PivotArmOffset = CurrentArmAngle.getAsDouble() - Math.toRadians(90);
 
 
         TargetElevatorHeight = 0.0;
@@ -110,10 +113,12 @@ public class CoralElevatorSystem extends SubsystemBase {
         SmartDashboard.putNumber("ElevatorPID max decel", CoralSystemSettings.ElevatorReferencePID.maxDeceleration);
         SmartDashboard.putNumber("Target Pivot Angle", Math.toDegrees(TargetArmAngle));
         SmartDashboard.putNumber("Current Pivot Angle", Math.toDegrees(CurrentArmAngle.getAsDouble()));
+        SmartDashboard.putNumber("Coral Pivot Power", PivotPower);
+        SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getEncoder().getPosition()); 
 
-        SmartDashboard.putNumber("Tune Algae Lower kP", CoralClawSettings.CoralPivotPID.getP());
-        SmartDashboard.putNumber("Tune Algae Lower kI", CoralClawSettings.CoralPivotPID.getI());
-        SmartDashboard.putNumber("Tune Algae Lower kD", CoralClawSettings.CoralPivotPID.getD());
+        SmartDashboard.putNumber("Tune Coral Pivot kP", CoralClawSettings.CoralPivotPID.getP());
+        SmartDashboard.putNumber("Tune Coral Pivot kI", CoralClawSettings.CoralPivotPID.getI());
+        SmartDashboard.putNumber("Tune Coral Pivot kD", CoralClawSettings.CoralPivotPID.getD());
 
         stageChangeButtonTimer = new ElapsedTime(Resolution.MILLISECONDS);
 
@@ -141,7 +146,7 @@ public class CoralElevatorSystem extends SubsystemBase {
         else ElevatorPower = 0;
 
         elevatorR.set(ElevatorPower);
-        elevatorL.set(ElevatorPower);
+        elevatorL.set(-ElevatorPower);
 
         if (!GoToPosition) {
 
@@ -187,11 +192,13 @@ public class CoralElevatorSystem extends SubsystemBase {
 
 
             if (Math.abs(ManualPivotControl.getAsDouble()) >= 0.05) TargetArmAngle += CoralClawSettings.manualPivotSpeed * ManualPivotControl.getAsDouble() * frameTime;
-            elevatorPivot.set(CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle));
+            PivotPower = CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle);
         } else {
-            elevatorPivot.set(0);
+            PivotPower = 0;
             TargetArmAngle = CurrentArmAngle.getAsDouble();
         }
+
+        elevatorPivot.set(PivotPower);
         
         TargetArmAngle = Functions.minMaxValue(CoralClawSettings.minAngle, CoralClawSettings.maxAngle, TargetArmAngle);
 
@@ -207,7 +214,10 @@ public class CoralElevatorSystem extends SubsystemBase {
         SmartDashboard.putNumber("ElevatorHeight", CurrentElevatorHeight.getAsDouble());
         SmartDashboard.putNumber("TargetEle", TargetElevatorHeight);
         SmartDashboard.putNumber("PowertoElevator",  ElevatorPower);
+        SmartDashboard.putNumber("Coral Pivot Power", PivotPower);
        // SmartDashboard.putString("test", testString);//hahahaahahaha I AM DEFINITLY OKAY RIGHT NOW
+
+       SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getEncoder().getPosition()); 
 
 
         CoralClawSettings.CoralPivotPID.setP(SmartDashboard.getNumber("Tune Coral Pivot kP", CoralClawSettings.CoralPivotPID.getP()));
@@ -305,6 +315,12 @@ public class CoralElevatorSystem extends SubsystemBase {
     public void ArmEnable() { pivotEnabled = true; }
     public void ArmDisable() { pivotEnabled = false; }
     public void ArmToggleEnabled() { pivotEnabled = !pivotEnabled; }
+
+
+    public void JumpElevatorToPickup() {
+        ElevatorPID.jumpSetTarget(10);
+        TargetElevatorHeight = 10;
+    }
 
 
 }

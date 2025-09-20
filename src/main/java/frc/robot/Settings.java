@@ -23,18 +23,18 @@ public class Settings {
         public static double elevatorRotationsToInches =(1.0/20.0)/*gear ratio*/ *(1.757*Math.PI/*circumference of the sprocket's pitch*/)*2;
 
         public static double startingPosition = 0;
-        public static double maxHeight = 50;
+        public static double maxHeight = 48;
         public static double minHeight = 0;
 
         public static PIDControllerSettingsReference ElevatorReferencePID = new PIDControllerSettingsReference(
-                0,
+                0.03,
                 0,
                 0,
                 0,
                 minHeight,
                 maxHeight,
                 0,
-                1,
+                0.3,
                 0,
                 0,
                 0,
@@ -46,25 +46,25 @@ public class Settings {
 
         
 
-        public static double manualControlSpeed = 25; // max speed in inches per second 
+        public static double manualControlSpeed = 45; // max speed in inches per second 
 
 
         public static double delayBeforeStaging = 750; // milliseconds that after holding the change stage button, will cause it to skip to max/min stage
 
 
-        public static double lowerLiftRange = Math.toRadians(-85); // range where the pivot is stopped and the elevator is moved up to prevent collisions
-        public static double upperLiftRange = Math.toRadians(-45);
-        public static double liftRangeHeight = 10;
+        public static double lowerLiftRange = Math.toRadians(35); // range where the pivot is stopped and the elevator is moved up to prevent collisions
+        public static double upperLiftRange = Math.toRadians(-85);
+        public static double liftRangeHeight = 25;
 
     }
 
     public static class CoralClawSettings {
 
         public static int CoralPivotCurrentLimit = 20;
-        public static PIDController CoralPivotPID = new PIDController(0.0, 0, 0); // 0, 0, 0
-        public static double maxAngle = 180;
-        public static double minAngle = -120;
-        public static double manualPivotSpeed = Math.toRadians(60); // radians per second
+        public static PIDController CoralPivotPID = new PIDController(0.7, 0, 0); // 0, 0, 0
+        public static double maxAngle = 90;
+        public static double minAngle = -93;
+        public static double manualPivotSpeed = Math.toRadians(70); // radians per second
 
 
         public static double startRoll = 0;
@@ -110,7 +110,7 @@ public class Settings {
 
     public static class AlgaeArmSettings {
 
-        public static double AlgaePivotStartAngle = Math.toRadians(180); // 150 before elevator support
+        public static double AlgaePivotStartAngle = Math.toRadians(95); // 150 before elevator support
 
         // Presets
         public static double PresetPickupAngle = Math.toRadians(25);
@@ -118,10 +118,10 @@ public class Settings {
         public static double PresetOuttakeAngle = Math.toRadians(80);
 
         // Limits
-        public static double MaxPivotAngle = Math.toRadians(180);
+        public static double MaxPivotAngle = Math.toRadians(95);
         public static double MinPivotAngle = Math.toRadians(0);
 
-        public static PIDController AlgaePivotPID = new PIDController(0.18, 0, 0); // 0, 0, 0
+        public static PIDController AlgaePivotPID = new PIDController(0.35, 0, 0); // 0, 0, 0
         public static PIDController AlgaeRollerPID = new PIDController(0.0, 0, 0); // 0, 0, 0
         
         public static double IntakePower = 0.4;

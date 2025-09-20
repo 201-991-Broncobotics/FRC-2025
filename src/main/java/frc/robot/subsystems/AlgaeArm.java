@@ -8,13 +8,16 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MotorConstants;
 import frc.robot.Settings.AlgaeArmSettings;
+import frc.robot.Settings.CoralClawSettings;
 import frc.robot.subsystems.CommandSwerveDrivetrain.gyroData;
 import frc.robot.utility.ElapsedTime;
 import frc.robot.utility.ElapsedTime.Resolution;
@@ -22,9 +25,10 @@ import frc.robot.utility.Functions;
 
 public class AlgaeArm extends SubsystemBase {
     
-    private TalonFX pivotMotor;
-    private SparkFlex algaeRoller;
-    private SparkFlexConfig algaeRollerConfig;
+    private SparkFlex pivotMotor;
+    private SparkFlexConfig pivotMotorConfig;
+    private SparkMax algaeRoller;
+    private SparkMaxConfig algaeRollerConfig;
 
     private DoubleSupplier algaePivotEncoder;
 
@@ -58,14 +62,17 @@ public class AlgaeArm extends SubsystemBase {
     public AlgaeArm() {
         runTime = new ElapsedTime(Resolution.SECONDS);
         
-        algaeRollerConfig = new SparkFlexConfig();
+        algaeRollerConfig = new SparkMaxConfig();
 
         TargetPivotAngle = AlgaeArmSettings.AlgaePivotStartAngle;
 
 
-        pivotMotor = new TalonFX(MotorConstants.algaePivotID);
-        pivotMotor.setNeutralMode(NeutralModeValue.Coast);
-        algaeRoller = new SparkFlex(MotorConstants.algaeRollerID, MotorType.kBrushless);
+        pivotMotor = new SparkFlex(MotorConstants.algaePivotID, MotorType.kBrushless);
+        pivotMotorConfig = new SparkFlexConfig();
+        pivotMotorConfig.idleMode(IdleMode.kBrake);
+        pivotMotor.configure(pivotMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        algaeRoller = new SparkMax(MotorConstants.algaeRollerID, MotorType.kBrushless);
         algaeRollerConfig.idleMode(IdleMode.kBrake);
         algaeRollerConfig.smartCurrentLimit(AlgaeArmSettings.algaeRollerStallCurrent);
         algaeRoller.configure(algaeRollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -73,9 +80,9 @@ public class AlgaeArm extends SubsystemBase {
         PivotMotorPower = 0;
         AlgaeRollerPower = 0;
 
-        pivotZeroAngle = pivotMotor.getPosition().getValueAsDouble();
+        pivotZeroAngle = pivotMotor.getEncoder().getPosition();
 
-        algaePivotEncoder = () -> (pivotMotor.getPosition().getValueAsDouble() - pivotZeroAngle) * pivotGearRatio * 2 * Math.PI + AlgaeArmSettings.AlgaePivotStartAngle;
+        algaePivotEncoder = () -> (pivotMotor.getEncoder().getPosition() - pivotZeroAngle) * pivotGearRatio * 2 * Math.PI + AlgaeArmSettings.AlgaePivotStartAngle;
 
 
         SmartDashboard.putNumber("Tune Algae Pivot kP", AlgaeArmSettings.AlgaePivotPID.getP());
@@ -126,7 +133,6 @@ public class AlgaeArm extends SubsystemBase {
 
         SmartDashboard.putNumber("Algae Current Pivot Angle", Math.toDegrees(algaePivotEncoder.getAsDouble()));
         SmartDashboard.putNumber("Algae Target Pivot Angle", Math.toDegrees(TargetPivotAngle));
-        SmartDashboard.putNumber("Algae Pivot Motor Current", pivotMotor.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Algae Pivot Motor Power", PivotMotorPower);
 
         SmartDashboard.putNumber("Algae Roller Power", AlgaeRollerPower);

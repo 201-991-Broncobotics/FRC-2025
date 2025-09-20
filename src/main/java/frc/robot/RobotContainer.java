@@ -61,7 +61,7 @@ public class RobotContainer {
     public final AlgaeArm algaeArm = new AlgaeArm();
     //public final ClimbingSystem climbingSystem = new ClimbingSystem();
 
-   public final CoralElevatorSystem coralElevatorSystem = new CoralElevatorSystem();
+    public final CoralElevatorSystem coralElevatorSystem = new CoralElevatorSystem();
 
 
     //public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
@@ -180,8 +180,9 @@ public class RobotContainer {
 
         // OPERATOR CONTROLS
 
-        coralElevatorSystem.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + ((operatorJoystick.getLeftTriggerAxis() > 0.25)? -0.5:0.0)
+        // coralElevatorSystem.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + ((operatorJoystick.getLeftTriggerAxis() > 0.25)? -0.5:0.0)
         coralElevatorSystem.setManualPivotControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.05));
+        // operatorJoystick.povDown().toggleOnTrue(new InstantCommand(coralElevatorSystem::JumpElevatorToPickup));
 
         //operatorJoystick.leftBumper().onTrue(runElevatorUp);
         //operatorJoystick.leftTrigger().onTrue(runElevatorDown);
@@ -196,7 +197,7 @@ public class RobotContainer {
         //operatorJoystick.povUp().onTrue(new InstantCommand(coralArmSystem::toggleCoralArm));
 
         // operatorJoystick.b().onTrue(new InstantCommand(algaeArmSystem::realignAlgaeArm));
-        operatorJoystick.y().toggleOnTrue(new InstantCommand(coralElevatorSystem::ToggleEnabled));
+        // operatorJoystick.y().toggleOnTrue(new InstantCommand(coralElevatorSystem::ToggleEnabled));
         operatorJoystick.x().toggleOnTrue(new InstantCommand(coralElevatorSystem::ArmToggleEnabled));
 
         //operatorJoystick.povDown().onTrue(new InstantCommand(algaeArmSystem::presetFloorForward));
@@ -235,18 +236,18 @@ public class RobotContainer {
         //operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToCoralStationPreset)).toggleOnFalse(new InstantCommand(coralClaw::goToElevatorPreset));
         
         // Algae
-        algaeArm.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getRightY(),  0.1));
+        algaeArm.setManualControl(() -> -Functions.deadbandValue(operatorJoystick.getRightY(),  0.1)); //algaeArm.setManualControl(() -> (operatorJoystick.povLeft().getAsBoolean())? 0.5:0 + -operatorJoystick.getLeftTriggerAxis());
         operatorJoystick.rightBumper().onTrue(new InstantCommand(algaeArm::outtakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::stopRoller));
         operatorJoystick.rightTrigger().onTrue(new InstantCommand(algaeArm::intakeRoller)).toggleOnFalse(new InstantCommand(algaeArm::holdRoller));
 
-        operatorJoystick.x().onTrue(new InstantCommand(algaeArm::presetOuttakePosition));
-        operatorJoystick.y().onTrue(new InstantCommand(algaeArm::presetStorePosition));
-        operatorJoystick.b().onTrue(new InstantCommand(algaeArm::presetIntakePosition));
+        //operatorJoystick.x().onTrue(new InstantCommand(algaeArm::presetOuttakePosition));
+        //operatorJoystick.y().onTrue(new InstantCommand(algaeArm::presetStorePosition));
+        //operatorJoystick.b().onTrue(new InstantCommand(algaeArm::presetIntakePosition));
         //operatorJoystick.a().toggleOnTrue(new InstantCommand(coralClaw::toggleEnabled));
 
 
         //coralClaw.setDefaultCommand(new RunCommand(coralClaw::update, coralClaw));
-        //coralElevatorSystem.setDefaultCommand(new RunCommand(coralElevatorSystem::update, coralElevatorSystem));
+        coralElevatorSystem.setDefaultCommand(new RunCommand(coralElevatorSystem::update, coralElevatorSystem));
         algaeArm.setDefaultCommand(new RunCommand(algaeArm::update, algaeArm));
         //climbingSystem.setDefaultCommand(new RunCommand(climbingSystem::update, climbingSystem));
         
