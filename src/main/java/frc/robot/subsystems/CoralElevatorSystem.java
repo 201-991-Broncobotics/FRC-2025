@@ -63,7 +63,7 @@ public class CoralElevatorSystem extends SubsystemBase {
 
     private boolean lastWasStagingUp = false;
 
-    private boolean enabled = false;
+    private boolean enabled = true;
     private boolean pivotEnabled = true;
 
     private DoubleSupplier ManualPivotControl;
@@ -215,9 +215,9 @@ public class CoralElevatorSystem extends SubsystemBase {
         SmartDashboard.putNumber("TargetEle", TargetElevatorHeight);
         SmartDashboard.putNumber("PowertoElevator",  ElevatorPower);
         SmartDashboard.putNumber("Coral Pivot Power", PivotPower);
-       // SmartDashboard.putString("test", testString);//hahahaahahaha I AM DEFINITLY OKAY RIGHT NOW
+        // SmartDashboard.putString("test", testString);//hahahaahahaha I AM DEFINITLY OKAY RIGHT NOW
 
-       SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getEncoder().getPosition()); 
+        SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getEncoder().getPosition()); 
 
 
         CoralClawSettings.CoralPivotPID.setP(SmartDashboard.getNumber("Tune Coral Pivot kP", CoralClawSettings.CoralPivotPID.getP()));

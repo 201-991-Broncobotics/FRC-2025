@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.shuffleboard.*;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.cameraserver.*;
+
 
 public class Vision {
     private final NetworkTable m_limelightTable;
@@ -12,6 +17,14 @@ public class Vision {
     private ArrayList<Double> m_targetList;
     private final int MAX_ENTRIES = 50;
     // private final NetworkTableEntry m_isTargetValid, m_led_entry;
+
+    public void initializeCameraStream() {
+        try {
+            CameraServer.startAutomaticCapture("Limelight", "http://limelight.local:5800/stream.mjpg");
+        } catch (Exception e) {
+            // do nothing
+        }
+    }
 
 
     /**
@@ -22,6 +35,14 @@ public class Vision {
         m_targetList = new ArrayList<Double>(MAX_ENTRIES);
         // m_isTargetValid = ShuffleboardInfo.getInstance().getTargetEntry();
         // m_led_entry = m_limelightTable.getEntry("ledMode");
+
+        // initializeCameraStream();
+
+        m_limelightTable.getEntry("camMode").setNumber(0);
+        m_limelightTable.getEntry("pipeline").setNumber(0);
+
+        SmartDashboard.putBoolean("Limelight Exists:", m_limelightTable != null);
+
     }
 
     public void updateVision() {

@@ -276,6 +276,8 @@ public class DrivingProfiles extends SubsystemBase {
         SmartDashboard.putNumber("Vision TX", camera.getTX());
         SmartDashboard.putNumber("Vision TA", camera.getTA());
         SmartDashboard.putBoolean("Vision valid Target", camera.isTargetValid());
+        SmartDashboard.putBoolean("IS AUTO STRAFING", autoStrafing);
+        if (AutoDrivingThrottle != null) SmartDashboard.putNumber("AutoStrafingThrottle", AutoDrivingThrottle.getAsDouble());
 
         SmartDashboard.putNumber("AUTO Targeting forward", autoForwardOutput);
         SmartDashboard.putNumber("AUTO Targeting strafe", autoStrafeOutput);
