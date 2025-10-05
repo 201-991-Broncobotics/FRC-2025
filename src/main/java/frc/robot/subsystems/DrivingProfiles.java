@@ -1,13 +1,22 @@
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Settings;
+import frc.robot.Constants.AutoDrivingConstants;
+import frc.robot.Settings.AutoDrivingSettings;
 import frc.robot.Settings.AutoTargetingSettings;
 import frc.robot.subsystems.CommandSwerveDrivetrain.gyroData;
+import frc.robot.utility.AdvancedPIDController;
+import frc.robot.utility.ElapsedTime;
 import frc.robot.utility.Functions;
 import frc.robot.utility.Vector2d;
 
@@ -35,24 +44,39 @@ public class DrivingProfiles extends SubsystemBase {
 
     private double autoForwardOutput = 0, autoStrafeOutput = 0, autoRotationOutput = 0;
 
-    private boolean lastSawObjectOnLeft = false;
-
-    private Joystick joystick;
-
-    private Vision camera;
+    private CommandSwerveDrivetrain drivetrain;
 
     private boolean useAutoDrivingThrottle = false;
     private DoubleSupplier AutoDrivingThrottle;
 
+    private Pose2d RobotPose;
 
-    public DrivingProfiles(Vision vision, boolean PreferController) {
-        this.camera = vision;
+    private ElapsedTime FPSTimer;
+
+    public List<List<Pose2d>> FieldTargetPoints; // Blue then red
+
+    private Pose2d ClosestFieldTargetPoint = new Pose2d();
+
+
+    public DrivingProfiles(CommandSwerveDrivetrain drivetrain, boolean PreferController) {
+        this.drivetrain = drivetrain;
         this.preferController = PreferController;
 
+        RobotPose = drivetrain.getState().Pose;
+
+        FPSTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+
         if (Settings.tuningTelemetryEnabled) {
-            SmartDashboard.putNumber("Tune Auto Aiming kP", AutoTargetingSettings.AutoAimPID.getP());
-            SmartDashboard.putNumber("Tune Auto Aiming kI", AutoTargetingSettings.AutoAimPID.getI());
-            SmartDashboard.putNumber("Tune Auto Aiming kD", AutoTargetingSettings.AutoAimPID.getD());
+            SmartDashboard.putNumber("Tune Reef Outward Offset", AutoDrivingSettings.OutwardFromCenter);
+            SmartDashboard.putNumber("Tune Reef Right Offset", AutoDrivingSettings.RightFromCenter);
+            SmartDashboard.putNumber("Tune Reef Left Offset", AutoDrivingSettings.LeftFromCenter);
+
+            SmartDashboard.putNumber("Tune Auto Turning kP", AutoTargetingSettings.AutoTurningPID.getP());
+            SmartDashboard.putNumber("Tune Auto Turning kI", AutoTargetingSettings.AutoTurningPID.getI());
+            SmartDashboard.putNumber("Tune Auto Turning kD", AutoTargetingSettings.AutoTurningPID.getD());
+            SmartDashboard.putNumber("Tune Auto Driving kP", AutoTargetingSettings.AutoDrivingPID.getP());
+            SmartDashboard.putNumber("Tune Auto Driving kD", AutoTargetingSettings.AutoDrivingPID.getD());
+            SmartDashboard.putNumber("Tune Auto Driving Max Power", AutoTargetingSettings.AutoDrivingMaxPower);
 
             SmartDashboard.putBoolean("Auto Aiming Enabled", AutoTargetingSettings.AutoAimingEnabled);
             SmartDashboard.putBoolean("Auto Driving Enabled", AutoTargetingSettings.AutoDrivingEnabled);
@@ -62,9 +86,8 @@ public class DrivingProfiles extends SubsystemBase {
 
     }
 
-    public DrivingProfiles(Vision vision) {
-        new DrivingProfiles(vision, preferController);
-        this.camera = vision;
+    public DrivingProfiles(CommandSwerveDrivetrain drivetrain) {
+        new DrivingProfiles(drivetrain, preferController);
     }
 
 
@@ -106,11 +129,11 @@ public class DrivingProfiles extends SubsystemBase {
             else stopDriving();
         }
 
-        if (useAutoDrivingThrottle) autoStrafing = (AutoDrivingThrottle.getAsDouble() > 0.1);
+        if (useAutoDrivingThrottle) autoDriving = (AutoDrivingThrottle.getAsDouble() > AutoThrottleDeadband);
 
-        if (autoAiming) updateAutoAiming();
+        //if (autoAiming) updateAutoAiming();
         if (autoDriving) updateAutoDriving();
-        if (autoStrafing) updateAutoStrafing();
+        //if (autoStrafing) updateAutoStrafing();
     }
 
 
@@ -157,12 +180,12 @@ public class DrivingProfiles extends SubsystemBase {
         return !(joystickPower == 0.0 && turn == 0.0); // returns true if in use
     }
 
-
+    /* 
     private void updateAutoAiming() {
-        autoRotationOutput = Functions.minMaxValue(-1, 1, AutoTargetingSettings.AutoAimPID.calculate(camera.getTX(), 0.0));
+        autoRotationOutput = Functions.minMaxValue(-1, 1, AutoTargetingSettings.AutoTurningPID.calculate(LimelightHelpers.getTX("limelight"), 0.0));
 
         if (AutoTargetingSettings.AutoAimingEnabled) {
-            if (camera.isTargetValid()) {
+            if (LimelightHelpers.getTargetCount("limelight") > 0) {
                 rotationOutput = autoRotationOutput;
             } else {
                 if (lastSawObjectOnLeft) rotationOutput = AutoTargetingSettings.searchingSpeed;
@@ -170,45 +193,54 @@ public class DrivingProfiles extends SubsystemBase {
             }
             
         }
-    }
+    } */
 
     private void updateAutoDriving() {
 
         Vector2d autoDrivingDirection = new Vector2d()
-            .withMag(AutoTargetingSettings.AutoDrivingPower * (AutoTargetingSettings.targetPercentageOfVisionBlocked - camera.getTA()))
-            .withAngle(gyroData.yaw + camera.getTX());
+            .withMag(Functions.minMaxValue(0, AutoTargetingSettings.AutoDrivingMaxPower, 
+                AutoTargetingSettings.AutoDrivingPID.calculate(0, 
+                    (new Vector2d(RobotPose.getX(), RobotPose.getY())).distFrom(new Vector2d(ClosestFieldTargetPoint.getX(), ClosestFieldTargetPoint.getY()))
+                )))
+            .withAngle(((new Vector2d(RobotPose.getX(), RobotPose.getY())).minus(new Vector2d(ClosestFieldTargetPoint.getX(), ClosestFieldTargetPoint.getY()))).angle());
 
-        double throttle = 0;
+        double throttle = 0; /* 
         if (preferController) {
             if (autoThrottleControllerInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleControllerInput.getAsDouble();
             else throttle = autoThrottleJoystickInput.getAsDouble();
         } else {
             if (autoThrottleJoystickInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleJoystickInput.getAsDouble();
             else throttle = autoThrottleControllerInput.getAsDouble();
-        }
+        } */
 
+        throttle = Functions.deadbandValue(AutoDrivingThrottle.getAsDouble(), AutoThrottleDeadband);
 
         autoForwardOutput = autoDrivingDirection.y * throttle;
         autoStrafeOutput = autoDrivingDirection.x * throttle;
+        autoRotationOutput = AutoTargetingSettings.AutoTurningPID.calculate(RobotPose.getRotation().getRadians(), ClosestFieldTargetPoint.getRotation().getRadians()) * throttle;
 
-        if (AutoTargetingSettings.AutoDrivingEnabled && camera.isTargetValid()) {
-            forwardOutput += autoForwardOutput * AutoDrivingThrottle.getAsDouble();
-            strafeOutput += autoStrafeOutput * AutoDrivingThrottle.getAsDouble();
+        if (AutoTargetingSettings.AutoDrivingEnabled) {
+            forwardOutput += autoForwardOutput;
+            strafeOutput += autoStrafeOutput;
+            rotationOutput += autoRotationOutput;
         }
     }
 
+    /* 
+
     private void updateAutoStrafing() {
 
-        double distanceFromCenter = camera.getTX();
-        if (Math.abs(camera.getTX() - AutoTargetingSettings.leftCorrectX) <= Math.abs(camera.getTX() - AutoTargetingSettings.rightCorrectX)) {
-            distanceFromCenter = camera.getTX() - AutoTargetingSettings.leftCorrectX;
+        double cameraTX = LimelightHelpers.getTX("limelight");
+        double distanceFromCenter = cameraTX;
+        if (Math.abs(cameraTX - AutoTargetingSettings.leftCorrectX) <= Math.abs(cameraTX - AutoTargetingSettings.rightCorrectX)) {
+            distanceFromCenter = cameraTX - AutoTargetingSettings.leftCorrectX;
         } else {
-            distanceFromCenter = camera.getTX() - AutoTargetingSettings.rightCorrectX;
+            distanceFromCenter = cameraTX - AutoTargetingSettings.rightCorrectX;
         }
 
         Vector2d autoStrafingDirection = new Vector2d()
             .withMag(AutoTargetingSettings.AutoDrivingPower * distanceFromCenter)
-            .withAngle(gyroData.yaw + Math.toRadians(90));
+            .withAngle(RobotPose.getRotation().getRadians() + Math.toRadians(90));
 
         double throttle = 0;
         if (preferController) {
@@ -223,12 +255,12 @@ public class DrivingProfiles extends SubsystemBase {
         autoForwardOutput = autoStrafingDirection.y * throttle;
         autoStrafeOutput = autoStrafingDirection.x * throttle;
 
-        if (AutoTargetingSettings.AutoDrivingEnabled && camera.isTargetValid()) {
-            forwardOutput += autoForwardOutput * AutoDrivingThrottle.getAsDouble();
-            strafeOutput += autoStrafeOutput * AutoDrivingThrottle.getAsDouble();
+        if (AutoTargetingSettings.AutoDrivingEnabled && LimelightHelpers.getTargetCount("limelight") > 0) {
+            forwardOutput += autoForwardOutput;
+            strafeOutput += autoStrafeOutput;
         }
 
-    }
+    } */
 
 
     public void stopDriving() {
@@ -246,58 +278,114 @@ public class DrivingProfiles extends SubsystemBase {
     public void enableSlowDown() { useThrottlePreset = true; }
     public void disableSlowDown() { useThrottlePreset = false; }
 
-    public void enableAutoAim() { autoAiming = true; }
-    public void disableAutoAim() { autoAiming = false; }
+    //public void enableAutoAim() { autoAiming = true; }
+    //public void disableAutoAim() { autoAiming = false; }
     public void enableAutoDriving() { autoDriving = true; }
     public void disableAutoDriving() { autoDriving = false; }
-    public void enableAutoStrafing() { autoStrafing = true; }
-    public void disableAutoStrafing() { autoStrafing = false; }
+    //public void enableAutoStrafing() { autoStrafing = true; }
+    //public void disableAutoStrafing() { autoStrafing = false; }
 
-    public void runAutoStrafingAtThrottle(DoubleSupplier AutoThrottle) {
+    public void setupAutoDrivingThrottle(DoubleSupplier AutoThrottle) {
         useAutoDrivingThrottle = true;
         AutoDrivingThrottle = AutoThrottle;
     }
 
 
+    private void CreateTargetFieldPoints() {
+        FieldTargetPoints = new ArrayList<>();
+        FieldTargetPoints.add(new ArrayList<>());
+        FieldTargetPoints.add(new ArrayList<>());
+        
+        Vector2d RightSide = new Vector2d(AutoDrivingSettings.OutwardFromCenter, -AutoDrivingSettings.RightFromCenter); // create a vector from the center of the reef to each placing spot on one edge
+        Vector2d LeftSide = new Vector2d(AutoDrivingSettings.OutwardFromCenter, AutoDrivingSettings.LeftFromCenter);
 
-    public void giveJoystickForTelemetry(Joystick joystick) {
-        this.joystick = joystick;
+        for (int i = 0; i <= 5; i++) {
+            double Angle = i*(Math.PI/3);
+            Vector2d BlueRightSide = AutoDrivingConstants.BlueReefCenter.plus(RightSide.withAngle(Angle + RightSide.angle())); // then adds it to the location of each reef and rotates it 6 times for each edge of the reef
+            Vector2d BlueLeftSide = AutoDrivingConstants.BlueReefCenter.plus(LeftSide.withAngle(Angle + LeftSide.angle()));
+            Vector2d RedRightSide = AutoDrivingConstants.RedReefCenter.plus(RightSide.withAngle(Angle + RightSide.angle()));
+            Vector2d RedLeftSide = AutoDrivingConstants.RedReefCenter.plus(LeftSide.withAngle(Angle + LeftSide.angle()));
+            
+            FieldTargetPoints.get(0).add(new Pose2d(BlueRightSide.x, BlueRightSide.y, new Rotation2d(Angle))); // and then adds them to the list
+            FieldTargetPoints.get(0).add(new Pose2d(BlueLeftSide.x, BlueLeftSide.y, new Rotation2d(Angle)));
+            FieldTargetPoints.get(1).add(new Pose2d(RedRightSide.x, RedRightSide.y, new Rotation2d(Angle))); 
+            FieldTargetPoints.get(1).add(new Pose2d(RedLeftSide.x, RedLeftSide.y, new Rotation2d(Angle)));
+        }
+        
+    }
+
+    private Pose2d getClosestPoint(Pose2d pose) {
+        Vector2d CurrentVector = new Vector2d(pose.getX(), pose.getY());
+        List<Pose2d> closerReef;
+        if (CurrentVector.distFrom(AutoDrivingConstants.BlueReefCenter) < CurrentVector.distFrom(AutoDrivingConstants.RedReefCenter)) {
+            closerReef = FieldTargetPoints.get(0);
+        } else {
+            closerReef = FieldTargetPoints.get(1);
+        }
+
+        Pose2d PointWithLowestDistance = closerReef.get(0);
+        for (Pose2d i : closerReef) {
+            if (CurrentVector.distFrom(new Vector2d(i.getX(), i.getY())) < CurrentVector.distFrom(new Vector2d(PointWithLowestDistance.getX(), PointWithLowestDistance.getY()))) {
+                PointWithLowestDistance = i;
+            }
+        }
+        return PointWithLowestDistance;
     }
 
 
     @Override
     public void periodic() {
+        if (FPSTimer.time() > 0) SmartDashboard.putNumber("FPS:", Functions.round(1.0 / FPSTimer.time(), 2));
+        FPSTimer.reset();
+        
+        drivetrain.addVisionMeasurement(LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight").pose, Timer.getFPGATimestamp());
 
-        camera.updateVision();
+        RobotPose = drivetrain.getState().Pose;
+        SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
+        
+        double cameraTX = LimelightHelpers.getTX("limelight");
+        //if (cameraTX > 0) lastSawObjectOnLeft = false;
+        //else if (cameraTX < 0) lastSawObjectOnLeft = true;
 
-        if (camera.getTX() > 0) lastSawObjectOnLeft = false;
-        else if (camera.getTX() < 0) lastSawObjectOnLeft = true;
 
-        SmartDashboard.putNumber("Vision TX", camera.getTX());
-        SmartDashboard.putNumber("Vision TA", camera.getTA());
-        SmartDashboard.putBoolean("Vision valid Target", camera.isTargetValid());
-        SmartDashboard.putBoolean("IS AUTO STRAFING", autoStrafing);
-        if (AutoDrivingThrottle != null) SmartDashboard.putNumber("AutoStrafingThrottle", AutoDrivingThrottle.getAsDouble());
 
-        SmartDashboard.putNumber("AUTO Targeting forward", autoForwardOutput);
-        SmartDashboard.putNumber("AUTO Targeting strafe", autoStrafeOutput);
-        SmartDashboard.putNumber("AUTO Targeting rotation", autoRotationOutput);
+        CreateTargetFieldPoints(); // refreshes the list of points each frame
+        ClosestFieldTargetPoint = getClosestPoint(RobotPose);
+        Vector2d CurrentVector = new Vector2d(RobotPose.getX(), RobotPose.getY());
+        if (CurrentVector.distFrom(AutoDrivingConstants.BlueReefCenter) < CurrentVector.distFrom(AutoDrivingConstants.RedReefCenter)) {
+            SmartDashboard.putString("Vision Closer Reef", "Blue");
+        } else SmartDashboard.putString("Vision Closer Reef", "Red");
+        SmartDashboard.putString("Vision TARGET:", "X:" + ClosestFieldTargetPoint.getX() + " Y:" + ClosestFieldTargetPoint.getY() + " R:" + ClosestFieldTargetPoint.getRotation().getDegrees());
 
-        SmartDashboard.putBoolean("Vision last saw object on left", lastSawObjectOnLeft);
+
+        SmartDashboard.putNumber("Vision TX", cameraTX);
+        SmartDashboard.putNumber("Vision TA", LimelightHelpers.getTA("limelight"));
+        SmartDashboard.putBoolean("Vision valid Target", LimelightHelpers.getTargetCount("limelight") > 0);
+        SmartDashboard.putBoolean("IS AUTO DRIVING?", autoDriving);
+        SmartDashboard.putNumber("AUTO Driving forward", autoForwardOutput);
+        SmartDashboard.putNumber("AUTO Driving strafe", autoStrafeOutput);
+        SmartDashboard.putNumber("AUTO Driving rotation", autoRotationOutput);
+
+        // SmartDashboard.putBoolean("Vision last saw object on left", lastSawObjectOnLeft);
 
         //update settings
         if (Settings.tuningTelemetryEnabled) {
-            AutoTargetingSettings.AutoAimPID.setP(SmartDashboard.getNumber("Tune Auto Aiming kP", AutoTargetingSettings.AutoAimPID.getP()));
-            AutoTargetingSettings.AutoAimPID.setI(SmartDashboard.getNumber("Tune Auto Aiming kI", AutoTargetingSettings.AutoAimPID.getI()));
-            AutoTargetingSettings.AutoAimPID.setD(SmartDashboard.getNumber("Tune Auto Aiming kD", AutoTargetingSettings.AutoAimPID.getD()));
+            AutoDrivingSettings.OutwardFromCenter = SmartDashboard.getNumber("Tune Reef Outward Offset", AutoDrivingSettings.OutwardFromCenter);
+            AutoDrivingSettings.RightFromCenter = SmartDashboard.getNumber("Tune Reef Right Offset", AutoDrivingSettings.RightFromCenter);
+            AutoDrivingSettings.LeftFromCenter = SmartDashboard.getNumber("Tune Reef Left Offset", AutoDrivingSettings.LeftFromCenter);
+
+            AutoTargetingSettings.AutoTurningPID.setP(SmartDashboard.getNumber("Tune Auto Turning kP", AutoTargetingSettings.AutoTurningPID.getP()));
+            AutoTargetingSettings.AutoTurningPID.setI(SmartDashboard.getNumber("Tune Auto Turning kI", AutoTargetingSettings.AutoTurningPID.getI()));
+            AutoTargetingSettings.AutoTurningPID.setD(SmartDashboard.getNumber("Tune Auto Turning kD", AutoTargetingSettings.AutoTurningPID.getD()));
+            AutoTargetingSettings.AutoDrivingPID.setP(SmartDashboard.getNumber("Tune Auto Driving kP", AutoTargetingSettings.AutoDrivingPID.getP()));
+            AutoTargetingSettings.AutoDrivingPID.setD(SmartDashboard.getNumber("Tune Auto Driving kD", AutoTargetingSettings.AutoDrivingPID.getD()));
+            AutoTargetingSettings.AutoDrivingMaxPower = SmartDashboard.getNumber("Tune Auto Driving Max Power", AutoTargetingSettings.AutoDrivingMaxPower);
 
             AutoTargetingSettings.AutoAimingEnabled = SmartDashboard.getBoolean("Auto Aiming Enabled", AutoTargetingSettings.AutoAimingEnabled);
             AutoTargetingSettings.AutoDrivingEnabled = SmartDashboard.getBoolean("Auto Driving Enabled", AutoTargetingSettings.AutoDrivingEnabled);
             AutoTargetingSettings.AutoDrivingPower = SmartDashboard.getNumber("Auto Driving Power", AutoTargetingSettings.AutoDrivingPower);
-            AutoTargetingSettings.targetPercentageOfVisionBlocked = SmartDashboard.getNumber("Auto target percentage of blocked vision", AutoTargetingSettings.targetPercentageOfVisionBlocked);
+            // AutoTargetingSettings.targetPercentageOfVisionBlocked = SmartDashboard.getNumber("Auto target percentage of blocked vision", AutoTargetingSettings.targetPercentageOfVisionBlocked);
         }
-
-        SmartDashboard.putNumber("Pigeon yaw", gyroData.yaw);
 
         /*
         SmartDashboard.putNumber("Pigeon accel X", gyroData.accelX);

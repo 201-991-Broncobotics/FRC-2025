@@ -14,7 +14,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -36,7 +35,6 @@ import frc.robot.subsystems.AlgaeArm;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralElevatorSystem;
 import frc.robot.subsystems.DrivingProfiles;
-import frc.robot.subsystems.Vision;
 import frc.robot.utility.Functions;
 
 public class RobotContainer {
@@ -54,9 +52,9 @@ public class RobotContainer {
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
     private final Joystick driverFlightHotasOne = new Joystick(2);
 
-    private final Vision vision = new Vision();
+    // private final Vision vision = new Vision();
 
-    private final DrivingProfiles drivingProfile = new DrivingProfiles(vision);
+    
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final AlgaeArm algaeArm = new AlgaeArm();
@@ -64,6 +62,7 @@ public class RobotContainer {
 
     public final CoralElevatorSystem coralElevatorSystem = new CoralElevatorSystem();
 
+    private final DrivingProfiles drivingProfile = new DrivingProfiles(drivetrain);
 
     //public final CoralArmSystem coralArmSystem = new CoralArmSystem("test up");
     //public final FalconCoralClaw coralClawSystem = new FalconCoralClaw();
@@ -94,6 +93,7 @@ public class RobotContainer {
         } */
 
         configureBindings();
+        
     }
 
     private void configureBindings() {
@@ -120,6 +120,7 @@ public class RobotContainer {
 
         drivingProfile.setDefaultCommand(new RunCommand(drivingProfile::update, drivingProfile));
 
+        
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -127,31 +128,19 @@ public class RobotContainer {
                     .withVelocityY(-drivingProfile.getStrafeOutput() * MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate(drivingProfile.getRotationOutput() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
-
-            // old
-            /* 
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-driverJoystick.getLeftY() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive forward with negative Y (forward)
-                    .withVelocityY(-driverJoystick.getLeftX() * MaxSpeed * (0.5 + 0.5 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive left with negative X (left)
-                    .withRotationalRate(-driverJoystick.getRightX() * MaxAngularRate * (0.6 + 0.4 * Math.abs(driverJoystick.getRightTriggerAxis()))) // Drive counterclockwise with negative X (left)
-            )
-            */
-        );
+        ); 
 
             
         // DRIVER CONTROLS
 
         // Auto Targeting
-        drivingProfile.setUpAutoThrottleControllerInput(() -> driverJoystick.getLeftTriggerAxis());
-        drivingProfile.setUpAutoThrottleJoystickInput(() -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2));
-
-        //driverJoystick.leftBumper().onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
-        // driverJoystick.leftTrigger().onTrue(new InstantCommand(drivingProfile::enableAutoStrafing)).onFalse(new InstantCommand(drivingProfile::disableAutoStrafing));
-        drivingProfile.runAutoStrafingAtThrottle(() -> driverJoystick.getLeftTriggerAxis()); 
-        new JoystickButton(driverFlightHotasOne, 1).onTrue(new InstantCommand(drivingProfile::enableAutoAim)).onFalse(new InstantCommand(drivingProfile::disableAutoAim));
-        new JoystickButton(driverFlightHotasOne, 15).onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
+        // drivingProfile.setUpAutoThrottleControllerInput(() -> driverJoystick.getLeftTriggerAxis());
+        // drivingProfile.setUpAutoThrottleJoystickInput(() -> 0.2 + 0.8 * ((-driverFlightHotasOne.getRawAxis(2)+1)/2));
 
 
+        // AUTO DRIVING
+        drivingProfile.setupAutoDrivingThrottle(() -> driverJoystick.getLeftTriggerAxis()); 
+        // new JoystickButton(driverFlightHotasOne, 15).onTrue(new InstantCommand(drivingProfile::enableAutoDriving)).onFalse(new InstantCommand(drivingProfile::disableAutoDriving));
 
         driverJoystick.b().whileTrue(drivetrain.applyRequest(() -> brake));
         new JoystickButton(driverFlightHotasOne, 7).whileTrue(drivetrain.applyRequest(() -> brake)); // d button on throttle side
@@ -170,13 +159,6 @@ public class RobotContainer {
         driverJoystick.y().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        // Climbing
-        //driverJoystick.povUp().onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
-        //driverJoystick.povDown().onTrue(new InstantCommand(climbingSystem::StartClimbing)).toggleOnFalse(new InstantCommand(climbingSystem::StopClimbing));
-
-        //new JoystickButton(driverFlightHotasOne, 14).onTrue(new InstantCommand(climbingSystem::StartClimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-        //new JoystickButton(driverFlightHotasOne, 13).onTrue(new InstantCommand(climbingSystem::StartUnclimbing)).onFalse(new InstantCommand(climbingSystem::StopClimbing));
-
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         driverJoystick.back().and(driverJoystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -193,9 +175,11 @@ public class RobotContainer {
         coralElevatorSystem.setManualControl(() -> ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + (-Functions.deadbandValue(operatorJoystick.getLeftTriggerAxis(), 0.1))); //-Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // 
         coralElevatorSystem.setManualPivotControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.05));
         operatorJoystick.povDown().toggleOnTrue(new InstantCommand(coralElevatorSystem::JumpElevatorToPickup));
+        operatorJoystick.povLeft().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToFunnel));
+        operatorJoystick.povUp().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToL4));
+        operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
 
         //operatorJoystick.x().toggleOnTrue(new InstantCommand(coralElevatorSystem::ArmToggleEnabled));
-
 
         //operatorJoystick.povLeft().onTrue(new InstantCommand(() -> coralClaw.goToPreset(CoralSystemPresets.GroundIntake))).onTrue(new InstantCommand(() -> coralElevatorSystem.goToPreset(CoralSystemPresets.GroundIntake)));
         //operatorJoystick.povUp().toggleOnTrue(new InstantCommand(coralElevatorSystem::upOneStage)).toggleOnFalse(new InstantCommand(coralClaw::goToElevatorPreset)).toggleOnFalse(new InstantCommand(coralElevatorSystem::stopChangingStage));

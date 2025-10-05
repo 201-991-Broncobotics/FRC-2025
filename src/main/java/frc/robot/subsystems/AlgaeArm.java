@@ -85,6 +85,7 @@ public class AlgaeArm extends SubsystemBase {
         algaePivotEncoder = () -> (pivotMotor.getEncoder().getPosition() - pivotZeroAngle) * pivotGearRatio * 2 * Math.PI + AlgaeArmSettings.AlgaePivotStartAngle;
 
 
+        /*
         SmartDashboard.putNumber("Tune Algae Pivot kP", AlgaeArmSettings.AlgaePivotPID.getP());
         SmartDashboard.putNumber("Tune Algae Pivot kI", AlgaeArmSettings.AlgaePivotPID.getI());
         SmartDashboard.putNumber("Tune Algae Pivot kD", AlgaeArmSettings.AlgaePivotPID.getD());
@@ -92,7 +93,7 @@ public class AlgaeArm extends SubsystemBase {
         SmartDashboard.putNumber("Tune Algae Roller kP", AlgaeArmSettings.AlgaeRollerPID.getP());
         SmartDashboard.putNumber("Tune Algae Roller kI", AlgaeArmSettings.AlgaeRollerPID.getI());
         SmartDashboard.putNumber("Tune Algae Roller kD", AlgaeArmSettings.AlgaeRollerPID.getD());
-
+        */
     }
 
 
@@ -131,6 +132,7 @@ public class AlgaeArm extends SubsystemBase {
         frameTime = runTime.time();
         runTime.reset();
 
+        /* 
         SmartDashboard.putNumber("Algae Current Pivot Angle", Math.toDegrees(algaePivotEncoder.getAsDouble()));
         SmartDashboard.putNumber("Algae Target Pivot Angle", Math.toDegrees(TargetPivotAngle));
         SmartDashboard.putNumber("Algae Pivot Motor Power", PivotMotorPower);
@@ -148,6 +150,8 @@ public class AlgaeArm extends SubsystemBase {
         AlgaeArmSettings.AlgaeRollerPID.setP(SmartDashboard.getNumber("Tune Algae Roller kP", AlgaeArmSettings.AlgaeRollerPID.getP()));
         AlgaeArmSettings.AlgaeRollerPID.setI(SmartDashboard.getNumber("Tune Algae Roller kI", AlgaeArmSettings.AlgaeRollerPID.getI()));
         AlgaeArmSettings.AlgaeRollerPID.setD(SmartDashboard.getNumber("Tune Algae Roller kD", AlgaeArmSettings.AlgaeRollerPID.getD()));
+
+        */
 
     }
 

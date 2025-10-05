@@ -318,9 +318,18 @@ public class CoralElevatorSystem extends SubsystemBase {
 
 
     public void JumpElevatorToPickup() {
-        ElevatorPID.jumpSetTarget(10);
-        TargetElevatorHeight = 10;
+
+        if (TargetArmAngle < Math.toRadians(-83) && TargetArmAngle > Math.toRadians(-97)) {
+            ElevatorPID.jumpSetTarget(10);
+            TargetElevatorHeight = 10;
+        }
     }
+
+    public void goToFunnel() { goToPreset(CoralSystemPresets.FunnelIntake); }
+    public void goToL4() { goToPreset(CoralSystemPresets.L4Reef); }
+    public void goToL3() { goToPreset(CoralSystemPresets.L4Reef); }
+    public void goToL2() { goToPreset(CoralSystemPresets.L2Reef); }
+    public void goToStow() { goToPreset(CoralSystemPresets.Stowed); }
 
 
 }

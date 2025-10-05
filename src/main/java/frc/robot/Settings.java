@@ -1,10 +1,14 @@
 package frc.robot;
 
+import java.util.Vector;
+
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import frc.robot.Constants.AlgaeArmConstants;
 import frc.robot.utility.CoralSystemPreset;
 import frc.robot.utility.PIDControllerSettingsReference;
+import frc.robot.utility.Vector2d;
 
 
 /**
@@ -142,9 +146,11 @@ public class Settings {
     public static class AutoTargetingSettings {
 
         public static boolean AutoAimingEnabled = true;
-        public static PIDController AutoAimPID = new PIDController(0, 0, 0);
+        public static PIDController AutoTurningPID = new PIDController(0, 0, 0);
+        public static PIDController AutoDrivingPID = new PIDController(0, 0, 0);
+        public static double AutoDrivingMaxPower = 0.5;
 
-        public static boolean AutoDrivingEnabled = false;
+        public static boolean AutoDrivingEnabled = true;
         public static double AutoDrivingPower = 0;
         public static double targetPercentageOfVisionBlocked = 0.2;
 
@@ -157,14 +163,23 @@ public class Settings {
 
     public static class CoralSystemPresets {
 
-        // Elevator Height (inches), Diffy Pitch (degrees), Diffy Roll (degrees)
-        public static CoralSystemPreset GroundIntake = new CoralSystemPreset(0, -27);
-        public static CoralSystemPreset CoralStationIntake = new CoralSystemPreset(11, 75);
-        public static CoralSystemPreset L4Reef = new CoralSystemPreset(50, 85);
-        public static CoralSystemPreset L3Reef = new CoralSystemPreset(35, 55);
-        public static CoralSystemPreset L2Reef = new CoralSystemPreset(25, 55);
-        public static CoralSystemPreset L1Reef = new CoralSystemPreset(0, 80);
-        public static CoralSystemPreset Stowed = new CoralSystemPreset(0, -90);
+        // Elevator Height (inches - luckily not in Christian units), Pivot Pitch (degrees)
+        public static CoralSystemPreset FunnelIntake = new CoralSystemPreset(20, -90);
+        //public static CoralSystemPreset CoralStationIntake = new CoralSystemPreset(11, 75);
+        public static CoralSystemPreset L4Reef = new CoralSystemPreset(40, 70);
+        public static CoralSystemPreset L3Reef = new CoralSystemPreset(35, 70);
+        public static CoralSystemPreset L2Reef = new CoralSystemPreset(25, 70);
+        // public static CoralSystemPreset L1Reef = new CoralSystemPreset(0, 80);
+        public static CoralSystemPreset Stowed = new CoralSystemPreset(0, 90);
 
+    }
+
+
+    public static class AutoDrivingSettings {
+
+        // in meters - 0.831659625 m is distance from center to outside of bumper
+        public static double OutwardFromCenter = 0.831659625 + ((17.819104 + 0)/39.37); // distance outward from center of the reef for each spot
+        public static double LeftFromCenter = ((13 + 0)/39.37)/2.0; // distance left from center of the reef for each spot
+        public static double RightFromCenter = ((13 + 0)/39.37)/2.0; // distance right from center of the reef for each spot
     }
 }

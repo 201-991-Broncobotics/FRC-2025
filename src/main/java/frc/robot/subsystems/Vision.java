@@ -18,14 +18,6 @@ public class Vision {
     private final int MAX_ENTRIES = 50;
     // private final NetworkTableEntry m_isTargetValid, m_led_entry;
 
-    public void initializeCameraStream() {
-        try {
-            CameraServer.startAutomaticCapture("Limelight", "http://limelight.local:5800/stream.mjpg");
-        } catch (Exception e) {
-            // do nothing
-        }
-    }
-
 
     /**
      * Creates a new Vision.
@@ -36,12 +28,8 @@ public class Vision {
         // m_isTargetValid = ShuffleboardInfo.getInstance().getTargetEntry();
         // m_led_entry = m_limelightTable.getEntry("ledMode");
 
-        // initializeCameraStream();
-
         m_limelightTable.getEntry("camMode").setNumber(0);
         m_limelightTable.getEntry("pipeline").setNumber(0);
-
-        SmartDashboard.putBoolean("Limelight Exists:", m_limelightTable != null);
 
     }
 
