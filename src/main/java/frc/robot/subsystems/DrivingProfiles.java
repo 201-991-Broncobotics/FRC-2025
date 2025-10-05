@@ -15,6 +15,7 @@ import frc.robot.Constants.AutoDrivingConstants;
 import frc.robot.Settings.AutoDrivingSettings;
 import frc.robot.Settings.AutoTargetingSettings;
 import frc.robot.subsystems.CommandSwerveDrivetrain.gyroData;
+import frc.robot.subsystems.LimelightHelpers.PoseEstimate;
 import frc.robot.utility.AdvancedPIDController;
 import frc.robot.utility.ElapsedTime;
 import frc.robot.utility.Functions;
@@ -338,7 +339,8 @@ public class DrivingProfiles extends SubsystemBase {
         if (FPSTimer.time() > 0) SmartDashboard.putNumber("FPS:", Functions.round(1.0 / FPSTimer.time(), 2));
         FPSTimer.reset();
         
-        drivetrain.addVisionMeasurement(LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight").pose, Timer.getFPGATimestamp());
+        PoseEstimate LimelightPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+        if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate)) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, Timer.getFPGATimestamp());
 
         RobotPose = drivetrain.getState().Pose;
         SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
