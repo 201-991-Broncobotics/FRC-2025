@@ -340,7 +340,7 @@ public class DrivingProfiles extends SubsystemBase {
         FPSTimer.reset();
         
         PoseEstimate LimelightPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
-        if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate)) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, Timer.getFPGATimestamp());
+        if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate)) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, LimelightPoseEstimate.timestampSeconds);
 
         RobotPose = drivetrain.getState().Pose;
         SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
