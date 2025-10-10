@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import java.lang.annotation.Target;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -37,9 +39,11 @@ public class CoralElevatorSystem extends SubsystemBase {
 
     private ElevatorFeedforward elevatorFeedForward;
 
-    private TalonFX elevatorR, elevatorL;
-    private SparkMax elevatorPivot;
-    private SparkMaxConfig elevatorPivotConfig;
+    private TalonFX elevatorR, elevatorL, elevatorPivot;
+    private TalonFXConfiguration elevatorPivotConfig;
+    private CurrentLimitsConfigs currentLimits;
+    //private SparkMax elevatorPivot;
+    //private SparkMaxConfig elevatorPivotConfig;
 
     private DoubleSupplier CurrentArmAngle;
     private double TargetArmAngle = Math.toRadians(90);
@@ -85,13 +89,23 @@ public class CoralElevatorSystem extends SubsystemBase {
         elevatorR.setNeutralMode(NeutralModeValue.Brake);
         elevatorL.setNeutralMode(NeutralModeValue.Brake);
 
-        elevatorPivot = new SparkMax(MotorConstants.coralPivotID, MotorType.kBrushless);
-        elevatorPivotConfig = new SparkMaxConfig();
-        elevatorPivotConfig.idleMode(IdleMode.kBrake);
+        elevatorPivot = new TalonFX(MotorConstants.coralPivotID);//new SparkMax(MotorConstants.coralPivotID, MotorType.kBrushless);
+
+        elevatorPivotConfig = new TalonFXConfiguration();
+        currentLimits = new CurrentLimitsConfigs();
+
+        // Set supply current limit
+        currentLimits.SupplyCurrentLimitEnable = true;
+        currentLimits.SupplyCurrentLimit = 40;
+
+        elevatorPivotConfig.CurrentLimits = currentLimits;
+
+        elevatorPivot.getConfigurator().apply(elevatorPivotConfig); //new SparkMaxConfig();
+        /*elevatorPivotConfig.idleMode(IdleMode.kBrake);
         elevatorPivotConfig.smartCurrentLimit(CoralClawSettings.CoralPivotCurrentLimit);
         elevatorPivot.configure(elevatorPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        CurrentArmAngle = () -> 2 * Math.PI * CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getEncoder().getPosition() - PivotArmOffset;
+        */
+        CurrentArmAngle = () -> 2 * Math.PI * CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getPosition().getValueAsDouble() - PivotArmOffset;
         CurrentElevatorHeight = () -> elevatorR.getPosition().getValueAsDouble()*CoralSystemSettings.elevatorRotationsToInches;
         PivotArmOffset = CurrentArmAngle.getAsDouble() - Math.toRadians(90);
 
@@ -114,7 +128,7 @@ public class CoralElevatorSystem extends SubsystemBase {
         SmartDashboard.putNumber("Target Pivot Angle", Math.toDegrees(TargetArmAngle));
         SmartDashboard.putNumber("Current Pivot Angle", Math.toDegrees(CurrentArmAngle.getAsDouble()));
         SmartDashboard.putNumber("Coral Pivot Power", PivotPower);
-        SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getEncoder().getPosition()); 
+        SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getPosition().getValueAsDouble()); 
 
         SmartDashboard.putNumber("Tune Coral Pivot kP", CoralClawSettings.CoralPivotPID.getP());
         SmartDashboard.putNumber("Tune Coral Pivot kI", CoralClawSettings.CoralPivotPID.getI());
@@ -217,7 +231,7 @@ public class CoralElevatorSystem extends SubsystemBase {
         SmartDashboard.putNumber("Coral Pivot Power", PivotPower);
         // SmartDashboard.putString("test", testString);//hahahaahahaha I AM DEFINITLY OKAY RIGHT NOW
 
-        SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getEncoder().getPosition()); 
+        SmartDashboard.putNumber("Coral Pivot Angle Actual", elevatorPivot.getPosition().getValueAsDouble()); 
 
 
         CoralClawSettings.CoralPivotPID.setP(SmartDashboard.getNumber("Tune Coral Pivot kP", CoralClawSettings.CoralPivotPID.getP()));
