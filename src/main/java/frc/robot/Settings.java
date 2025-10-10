@@ -65,7 +65,7 @@ public class Settings {
     public static class CoralClawSettings {
 
         public static int CoralPivotCurrentLimit = 20;
-        public static PIDController CoralPivotPID = new PIDController(0.0, 0, 0); // 0.7, 0, 0
+        public static PIDController CoralPivotPID = new PIDController(0.7, 0, 0); // 0, 0, 0
         public static double maxAngle = 90;
         public static double minAngle = -93;
         public static double manualPivotSpeed = Math.toRadians(70); // radians per second

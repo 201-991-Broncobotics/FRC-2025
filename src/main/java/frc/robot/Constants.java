@@ -51,7 +51,7 @@ public final class Constants {
     }
 
     public static class CoralSystemConstants {
-        public static final double CoralArmGearRatio = (1.0/36.0);
+        public static final double CoralArmGearRatio = (1.0/108.0 * 4/3);
     }
 
     public static class AutoDrivingConstants {
