@@ -27,26 +27,26 @@ public class Settings {
         public static double elevatorRotationsToInches =(1.0/20.0)/*gear ratio*/ *(1.757*Math.PI/*circumference of the sprocket's pitch*/)*2;
 
         public static double startingPosition = 0;
-        public static double maxHeight = 48;
+        public static double maxHeight = 60;
         public static double minHeight = 0;
 
         public static PIDControllerSettingsReference ElevatorReferencePID = new PIDControllerSettingsReference(
-                0.03,
+                0.08,
                 0,
                 0,
                 0,
                 minHeight,
                 maxHeight,
                 0,
-                0.2,
+                0.3,
                 0,
                 0,
-                0,
+                20,
                 .8,
                 0,
                 0,
                 true,
-                false);
+                true);
 
         
 
@@ -146,8 +146,8 @@ public class Settings {
     public static class AutoTargetingSettings {
 
         public static boolean AutoAimingEnabled = true;
-        public static PIDController AutoTurningPID = new PIDController(0, 0, 0);
-        public static PIDController AutoDrivingPID = new PIDController(0, 0, 0);
+        public static PIDController AutoTurningPID = new PIDController(0.9, 0, 0);
+        public static PIDController AutoDrivingPID = new PIDController(0.9, 0, 0);
         public static double AutoDrivingMaxPower = 0.5;
 
         public static boolean AutoDrivingEnabled = true;
@@ -166,7 +166,7 @@ public class Settings {
         // Elevator Height (inches - luckily not in Christian units), Pivot Pitch (degrees)
         public static CoralSystemPreset FunnelIntake = new CoralSystemPreset(20, -90);
         //public static CoralSystemPreset CoralStationIntake = new CoralSystemPreset(11, 75);
-        public static CoralSystemPreset L4Reef = new CoralSystemPreset(40, 70);
+        public static CoralSystemPreset L4Reef = new CoralSystemPreset(60, 70);
         public static CoralSystemPreset L3Reef = new CoralSystemPreset(35, 70);
         public static CoralSystemPreset L2Reef = new CoralSystemPreset(25, 70);
         // public static CoralSystemPreset L1Reef = new CoralSystemPreset(0, 80);
@@ -178,8 +178,8 @@ public class Settings {
     public static class AutoDrivingSettings {
 
         // in meters - 0.831659625 m is distance from center to outside of bumper
-        public static double OutwardFromCenter = 0.831659625 + ((17.819104 + 0)/39.37); // distance outward from center of the reef for each spot
-        public static double LeftFromCenter = ((13 + 0)/39.37)/2.0; // distance left from center of the reef for each spot
-        public static double RightFromCenter = ((13 + 0)/39.37)/2.0; // distance right from center of the reef for each spot
+        public static double OutwardFromCenter = 0.831659625 + ((17.819104 + 0)/39.37) + 0.75; // distance outward from center of the reef for each spot
+        public static double LeftFromCenter = 0.46; // distance left from center of the reef for each spot
+        public static double RightFromCenter = 0.0; // distance right from center of the reef for each spot
     }
 }

@@ -45,12 +45,12 @@ public class DrivingProfiles extends SubsystemBase {
 
     private double autoForwardOutput = 0, autoStrafeOutput = 0, autoRotationOutput = 0;
 
-    private CommandSwerveDrivetrain drivetrain;
+    private static CommandSwerveDrivetrain drivetrain;
 
-    private boolean useAutoDrivingThrottle = false;
+    private boolean useAutoDrivingThrottle = true;
     private DoubleSupplier AutoDrivingThrottle;
 
-    private Pose2d RobotPose;
+    private static Pose2d RobotPose;
 
     private ElapsedTime FPSTimer;
 
@@ -60,7 +60,7 @@ public class DrivingProfiles extends SubsystemBase {
 
 
     public DrivingProfiles(CommandSwerveDrivetrain drivetrain, boolean PreferController) {
-        this.drivetrain = drivetrain;
+        DrivingProfiles.drivetrain = drivetrain;
         this.preferController = PreferController;
 
         RobotPose = drivetrain.getState().Pose;
@@ -141,13 +141,13 @@ public class DrivingProfiles extends SubsystemBase {
     private boolean updateController() {
         double forward = fowardControllerInput.getAsDouble();
         double strafe = strafeControllerInput.getAsDouble();
-        double turn = Functions.deadbandValue(rotationControllerInput.getAsDouble(), ControllerDeadband);
+        double turn = rotationControllerInput.getAsDouble();
         double throttle = throttleControllerInput.getAsDouble();
 
         if (useThrottlePreset) throttle = presetThrottleControl;
 
         double Direction = Math.atan2(forward, strafe);
-        double joystickPower = Functions.deadbandValue(Math.hypot(forward, strafe), ControllerDeadband);
+        double joystickPower = Math.hypot(forward, strafe);
         double drivePower = Functions.throttleCurve(joystickPower, controllerDriveCurveMag) * throttle;
 
         if (joystickPower == 0.0) drivePower = 0; // just to make sure
@@ -198,34 +198,40 @@ public class DrivingProfiles extends SubsystemBase {
 
     private void updateAutoDriving() {
 
-        Vector2d autoDrivingDirection = new Vector2d()
-            .withMag(Functions.minMaxValue(0, AutoTargetingSettings.AutoDrivingMaxPower, 
-                AutoTargetingSettings.AutoDrivingPID.calculate(0, 
-                    (new Vector2d(RobotPose.getX(), RobotPose.getY())).distFrom(new Vector2d(ClosestFieldTargetPoint.getX(), ClosestFieldTargetPoint.getY()))
-                )))
-            .withAngle(((new Vector2d(RobotPose.getX(), RobotPose.getY())).minus(new Vector2d(ClosestFieldTargetPoint.getX(), ClosestFieldTargetPoint.getY()))).angle());
+        RobotPose = drivetrain.getState().Pose;
+        if (RobotPose != null) {
+            Vector2d autoDrivingDirection = new Vector2d()
+                .withMag(Functions.minMaxValue(0, AutoTargetingSettings.AutoDrivingMaxPower, 
+                    AutoTargetingSettings.AutoDrivingPID.calculate(0, 
+                        (new Vector2d(RobotPose.getX(), RobotPose.getY())).distFrom(new Vector2d(ClosestFieldTargetPoint.getX(), ClosestFieldTargetPoint.getY()))
+                    )))
+                .withAngle(((new Vector2d(RobotPose.getX(), RobotPose.getY())).minus(new Vector2d(ClosestFieldTargetPoint.getX(), ClosestFieldTargetPoint.getY()))).angle() + Math.toRadians(90));
 
-        double throttle = 0; /* 
-        if (preferController) {
-            if (autoThrottleControllerInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleControllerInput.getAsDouble();
-            else throttle = autoThrottleJoystickInput.getAsDouble();
-        } else {
-            if (autoThrottleJoystickInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleJoystickInput.getAsDouble();
-            else throttle = autoThrottleControllerInput.getAsDouble();
-        } */
+            double throttle = 0; /* 
+            if (preferController) {
+                if (autoThrottleControllerInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleControllerInput.getAsDouble();
+                else throttle = autoThrottleJoystickInput.getAsDouble();
+            } else {
+                if (autoThrottleJoystickInput.getAsDouble() > AutoThrottleDeadband) throttle = autoThrottleJoystickInput.getAsDouble();
+                else throttle = autoThrottleControllerInput.getAsDouble();
+            } */
 
-        throttle = Functions.deadbandValue(AutoDrivingThrottle.getAsDouble(), AutoThrottleDeadband);
+            throttle = Functions.deadbandValue(AutoDrivingThrottle.getAsDouble(), AutoThrottleDeadband);
 
-        autoForwardOutput = autoDrivingDirection.y * throttle;
-        autoStrafeOutput = autoDrivingDirection.x * throttle;
-        autoRotationOutput = AutoTargetingSettings.AutoTurningPID.calculate(RobotPose.getRotation().getRadians(), ClosestFieldTargetPoint.getRotation().getRadians()) * throttle;
+            autoForwardOutput = autoDrivingDirection.y * throttle;
+            autoStrafeOutput = autoDrivingDirection.x * throttle;
+            autoRotationOutput = AutoTargetingSettings.AutoTurningPID.calculate(Functions.normalizeAngle(RobotPose.getRotation().getRadians() - ClosestFieldTargetPoint.getRotation().getRadians()), 0) * throttle;
 
-        if (AutoTargetingSettings.AutoDrivingEnabled) {
-            forwardOutput += autoForwardOutput;
-            strafeOutput += autoStrafeOutput;
-            rotationOutput += autoRotationOutput;
-        }
-    }
+            if (AutoTargetingSettings.AutoDrivingEnabled) {
+                forwardOutput += autoForwardOutput;
+                strafeOutput += autoStrafeOutput;
+                rotationOutput += autoRotationOutput;
+            }
+            SmartDashboard.putString("AutoDriving", "is supposed to be working");
+        } else SmartDashboard.putString("AutoDriving", "error");
+
+        
+    } 
 
     /* 
 
@@ -336,37 +342,47 @@ public class DrivingProfiles extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (FPSTimer.time() > 0) SmartDashboard.putNumber("FPS:", Functions.round(1.0 / FPSTimer.time(), 2));
-        FPSTimer.reset();
+        if (FPSTimer != null) {
+            if (FPSTimer.time() > 0) SmartDashboard.putNumber("FPS:", Functions.round(1.0 / FPSTimer.time(), 2));
+            FPSTimer.reset();
+        }
         
-        PoseEstimate LimelightPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
-        if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate)) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, LimelightPoseEstimate.timestampSeconds);
+        if (drivetrain != null) {
+            PoseEstimate LimelightPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+            if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate)) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, LimelightPoseEstimate.timestampSeconds);
 
-        RobotPose = drivetrain.getState().Pose;
-        SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
+            RobotPose = drivetrain.getState().Pose;
+            SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
+
+            double cameraTX = LimelightHelpers.getTX("limelight");
+
+            CreateTargetFieldPoints(); // refreshes the list of points each frame
+            ClosestFieldTargetPoint = getClosestPoint(RobotPose);
+            Vector2d CurrentVector = new Vector2d(RobotPose.getX(), RobotPose.getY());
+            if (CurrentVector.distFrom(AutoDrivingConstants.BlueReefCenter) < CurrentVector.distFrom(AutoDrivingConstants.RedReefCenter)) {
+                SmartDashboard.putString("Vision Closer Reef", "Blue");
+            } else SmartDashboard.putString("Vision Closer Reef", "Red");
+            SmartDashboard.putString("Vision TARGET:", "X:" + ClosestFieldTargetPoint.getX() + " Y:" + ClosestFieldTargetPoint.getY() + " R:" + ClosestFieldTargetPoint.getRotation().getDegrees());
+
+
+            SmartDashboard.putNumber("Vision TX", cameraTX);
+            SmartDashboard.putNumber("Vision TA", LimelightHelpers.getTA("limelight"));
+            SmartDashboard.putBoolean("Vision valid Target", LimelightHelpers.getTargetCount("limelight") > 0);
+            SmartDashboard.putBoolean("IS AUTO DRIVING?", autoDriving);
+            SmartDashboard.putNumber("AUTO Driving forward", autoForwardOutput);
+            SmartDashboard.putNumber("AUTO Driving strafe", autoStrafeOutput);
+            SmartDashboard.putNumber("AUTO Driving rotation", autoRotationOutput);
+        }
         
-        double cameraTX = LimelightHelpers.getTX("limelight");
+        
+        
+       
         //if (cameraTX > 0) lastSawObjectOnLeft = false;
         //else if (cameraTX < 0) lastSawObjectOnLeft = true;
 
 
 
-        CreateTargetFieldPoints(); // refreshes the list of points each frame
-        ClosestFieldTargetPoint = getClosestPoint(RobotPose);
-        Vector2d CurrentVector = new Vector2d(RobotPose.getX(), RobotPose.getY());
-        if (CurrentVector.distFrom(AutoDrivingConstants.BlueReefCenter) < CurrentVector.distFrom(AutoDrivingConstants.RedReefCenter)) {
-            SmartDashboard.putString("Vision Closer Reef", "Blue");
-        } else SmartDashboard.putString("Vision Closer Reef", "Red");
-        SmartDashboard.putString("Vision TARGET:", "X:" + ClosestFieldTargetPoint.getX() + " Y:" + ClosestFieldTargetPoint.getY() + " R:" + ClosestFieldTargetPoint.getRotation().getDegrees());
-
-
-        SmartDashboard.putNumber("Vision TX", cameraTX);
-        SmartDashboard.putNumber("Vision TA", LimelightHelpers.getTA("limelight"));
-        SmartDashboard.putBoolean("Vision valid Target", LimelightHelpers.getTargetCount("limelight") > 0);
-        SmartDashboard.putBoolean("IS AUTO DRIVING?", autoDriving);
-        SmartDashboard.putNumber("AUTO Driving forward", autoForwardOutput);
-        SmartDashboard.putNumber("AUTO Driving strafe", autoStrafeOutput);
-        SmartDashboard.putNumber("AUTO Driving rotation", autoRotationOutput);
+        
 
         // SmartDashboard.putBoolean("Vision last saw object on left", lastSawObjectOnLeft);
 

@@ -101,11 +101,11 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
 
         drivingProfile.setUpControllerInputs(
-            () -> -driverJoystick.getLeftY(), 
-            () -> driverJoystick.getLeftX(), 
+            () -> driverJoystick.getLeftY() + ((driverJoystick.povUp().getAsBoolean())? 0.15:0.0) + ((driverJoystick.povDown().getAsBoolean())? -0.15:0.0), 
+            () -> -driverJoystick.getLeftX() + ((driverJoystick.povRight().getAsBoolean())? 0.15:0.0) + ((driverJoystick.povLeft().getAsBoolean())? -0.15:0.0), 
             () -> -driverJoystick.getRightX(), 
-            () -> 0.5 + 0.5 * driverJoystick.getRightTriggerAxis(), 
-            2, 2
+            () -> 0.4 + 0.6 * driverJoystick.getRightTriggerAxis(), 
+            3, 3
         );
 
         drivingProfile.setUpJoystickInputs(
@@ -174,10 +174,10 @@ public class RobotContainer {
 
         coralElevatorSystem.setManualControl(() -> ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + (-Functions.deadbandValue(operatorJoystick.getLeftTriggerAxis(), 0.1))); //-Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // 
         coralElevatorSystem.setManualPivotControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.05));
-        operatorJoystick.povDown().toggleOnTrue(new InstantCommand(coralElevatorSystem::JumpElevatorToPickup));
-        operatorJoystick.povLeft().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToFunnel));
+        operatorJoystick.povDown().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
+        operatorJoystick.povLeft().toggleOnTrue(new InstantCommand(coralElevatorSystem::DepositOnL4));
         operatorJoystick.povUp().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToL4));
-        operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
+        //operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
 
         //operatorJoystick.x().toggleOnTrue(new InstantCommand(coralElevatorSystem::ArmToggleEnabled));
 
