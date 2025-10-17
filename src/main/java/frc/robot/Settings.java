@@ -22,7 +22,7 @@ public class Settings {
     public static class CoralSystemSettings {
 
         // public static double elevatorTolerance =.8;
-        public static double armTolerance =5;
+        public static double armTolerance = 2;
         // public static double elevatorSpeedControl =1;
         public static double elevatorRotationsToInches =(1.0/20.0)/*gear ratio*/ *(1.757*Math.PI/*circumference of the sprocket's pitch*/)*2;
 

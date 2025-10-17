@@ -196,7 +196,7 @@ public class DrivingProfiles extends SubsystemBase {
         }
     } */
 
-    private void updateAutoDriving() {
+    public void updateAutoDriving() {
 
         RobotPose = drivetrain.getState().Pose;
         if (RobotPose != null) {
@@ -232,6 +232,14 @@ public class DrivingProfiles extends SubsystemBase {
 
         
     } 
+
+    public double getAutoDrivePower() {
+        return Math.hypot(autoForwardOutput, autoStrafeOutput);
+    }
+
+    public double getAutoDriveTurnPower() {
+        return autoRotationOutput;
+    }
 
     /* 
 

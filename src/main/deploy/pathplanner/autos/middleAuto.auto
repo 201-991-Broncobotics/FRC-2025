@@ -9,21 +9,9 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "startArm"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
                   "pathName": "middleStart"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "raiseArm"
                 }
               }
             ]
@@ -36,27 +24,9 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "placeCoral"
-          }
-        },
-        {
           "type": "wait",
           "data": {
             "waitTime": 1.0
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "stopClaw"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "middleBack"
           }
         }
       ]

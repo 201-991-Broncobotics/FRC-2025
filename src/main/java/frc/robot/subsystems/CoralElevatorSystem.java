@@ -105,7 +105,7 @@ public class CoralElevatorSystem extends SubsystemBase {
         elevatorPivotConfig.smartCurrentLimit(CoralClawSettings.CoralPivotCurrentLimit);
         elevatorPivot.configure(elevatorPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         */
-        CurrentArmAngle = () -> 2 * Math.PI * CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getPosition().getValueAsDouble() - PivotArmOffset;
+        CurrentArmAngle = () -> Functions.normalizeAngle(2 * Math.PI * CoralSystemConstants.CoralArmGearRatio * elevatorPivot.getPosition().getValueAsDouble() - PivotArmOffset);
         CurrentElevatorHeight = () -> elevatorR.getPosition().getValueAsDouble()*CoralSystemSettings.elevatorRotationsToInches;
         PivotArmOffset = CurrentArmAngle.getAsDouble() - Math.toRadians(90);
 
@@ -206,7 +206,7 @@ public class CoralElevatorSystem extends SubsystemBase {
 
 
             if (Math.abs(ManualPivotControl.getAsDouble()) >= 0.05) TargetArmAngle += CoralClawSettings.manualPivotSpeed * ManualPivotControl.getAsDouble() * frameTime;
-            PivotPower = CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle);
+            PivotPower = CoralClawSettings.CoralPivotPID.calculate(Functions.angleDifference(CurrentArmAngle.getAsDouble(), TargetArmAngle, 2*Math.PI), 0); // CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle);
         } else {
             PivotPower = 0;
             TargetArmAngle = CurrentArmAngle.getAsDouble();
@@ -352,6 +352,11 @@ public class CoralElevatorSystem extends SubsystemBase {
     }
 
     public void DepositOnL4() { TargetArmAngle = Math.toRadians(15); }
+    public void goToAfterL4() { TargetElevatorHeight = 50; }
+
+    public boolean isFinishedMoving() {
+        return Math.abs(CurrentElevatorHeight.getAsDouble() - TargetElevatorHeight) < CoralSystemSettings.armTolerance;
+    }
 
 
 }

@@ -29,7 +29,11 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Settings.AlgaeArmSettings;
 import frc.robot.commands.AlgaeArmTeleOpCommand;
+import frc.robot.commands.AutoAlignCommand;
 import frc.robot.commands.Autonomous;
+import frc.robot.commands.PlaceL4CoralCommand;
+import frc.robot.commands.RaiseElevatorToL4Command;
+import frc.robot.commands.StowElevatorCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeArm;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -75,6 +79,11 @@ public class RobotContainer {
     //pathplanner auto
     private final SendableChooser<Command> autoChooser; 
 
+    public final AutoAlignCommand autoAlignCommand = new AutoAlignCommand(drivingProfile);
+    public final PlaceL4CoralCommand placeL4CoralCommand = new PlaceL4CoralCommand(coralElevatorSystem);
+    public final RaiseElevatorToL4Command raiseElevatorToL4Command = new RaiseElevatorToL4Command(coralElevatorSystem);
+    public final StowElevatorCommand stowElevatorCommand = new StowElevatorCommand(coralElevatorSystem);
+
     public RobotContainer() {
          //Register Auto Commands
         
@@ -82,6 +91,12 @@ public class RobotContainer {
         //selecting the pathplanner auto you want from dashboard + setting default
         autoChooser = AutoBuilder.buildAutoChooser("middleAuto");
         SmartDashboard.putData("Auto Mode", autoChooser);
+
+        NamedCommands.registerCommand("AutoAlign", autoAlignCommand);
+        NamedCommands.registerCommand("PlaceL4Coral", placeL4CoralCommand);
+        NamedCommands.registerCommand("RaiseElevatorToL4", raiseElevatorToL4Command);
+        NamedCommands.registerCommand("StowElevator", stowElevatorCommand);
+
 
         /* 
         try {
