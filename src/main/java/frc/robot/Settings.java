@@ -27,7 +27,7 @@ public class Settings {
         public static double elevatorRotationsToInches =(1.0/20.0)/*gear ratio*/ *(1.757*Math.PI/*circumference of the sprocket's pitch*/)*2;
 
         public static double startingPosition = 0;
-        public static double maxHeight = 60;
+        public static double maxHeight = 57; //elevator height, adjusted down from 60 cuz colton said this was better from wiring - Coding Expert, Eli
         public static double minHeight = 0;
 
         public static PIDControllerSettingsReference ElevatorReferencePID = new PIDControllerSettingsReference(
@@ -50,7 +50,7 @@ public class Settings {
 
         
 
-        public static double manualControlSpeed = 45; // max speed in inches per second 
+        public static double manualControlSpeed = 50;  // max speed in inches per second AIDAN NAME YOUR VARAIBLES WHAT SPEED IS THIS- Eli
 
 
         public static double delayBeforeStaging = 750; // milliseconds that after holding the change stage button, will cause it to skip to max/min stage
@@ -65,10 +65,10 @@ public class Settings {
     public static class CoralClawSettings {
 
         public static int CoralPivotCurrentLimit = 20;
-        public static PIDController CoralPivotPID = new PIDController(0.0, 0, 0); // 0.7, 0, 0
+        public static PIDController CoralPivotPID = new PIDController(0.155, 0, 0); // 0.7, 0, 0
         public static double maxAngle = 90;
         public static double minAngle = -93;
-        public static double manualPivotSpeed = Math.toRadians(70); // radians per second
+        public static double manualPivotSpeed = Math.toRadians(90); // radians per second
 
 
         public static double startRoll = 0;
