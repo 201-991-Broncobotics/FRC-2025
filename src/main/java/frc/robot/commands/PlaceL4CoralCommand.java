@@ -20,7 +20,7 @@ public class PlaceL4CoralCommand extends Command {
         shouldBeFinished = false;
         coralElevatorSystem.DepositOnL4();
         DepositTimeout = new PeriodicWaitTimer(); 
-        DepositTimeout.start(2);
+        DepositTimeout.start(1);
     }
 
     @Override
@@ -29,13 +29,14 @@ public class PlaceL4CoralCommand extends Command {
         coralElevatorSystem.update();
         if (DepositTimeout.isPastTime()) {
             coralElevatorSystem.goToAfterL4();
+            coralElevatorSystem.update();
             shouldBeFinished = true;
         }
     }
 
     @Override
     public boolean isFinished() {
-        return shouldBeFinished; // Or false if it's a continuous action that needs a separate stop command
+        return shouldBeFinished && coralElevatorSystem.isFinishedMoving(); // Or false if it's a continuous action that needs a separate stop command
     }
 
     @Override

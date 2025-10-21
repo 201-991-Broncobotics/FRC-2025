@@ -91,4 +91,10 @@ public class Functions {
         else return (1 - deadband) * value + deadband * Math.signum(value);
     }
 
+
+    public static Vector2d SwitchAngle(Vector2d v, double a) {
+        double mag = Math.hypot(v.x, v.y);
+        return new Vector2d(mag * Math.cos(a), mag * Math.sin(a));
+    }
+
 }

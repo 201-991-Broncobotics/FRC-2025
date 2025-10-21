@@ -96,7 +96,7 @@ public class CoralElevatorSystem extends SubsystemBase {
 
         // Set supply current limit
         currentLimits.SupplyCurrentLimitEnable = true;
-        currentLimits.SupplyCurrentLimit = 40;
+        currentLimits.SupplyCurrentLimit = 50;
 
         elevatorPivotConfig.CurrentLimits = currentLimits;
 
@@ -206,7 +206,7 @@ public class CoralElevatorSystem extends SubsystemBase {
 
 
             if (Math.abs(ManualPivotControl.getAsDouble()) >= 0.05) TargetArmAngle += CoralClawSettings.manualPivotSpeed * ManualPivotControl.getAsDouble() * frameTime;
-            PivotPower = CoralClawSettings.CoralPivotPID.calculate(Functions.angleDifference(CurrentArmAngle.getAsDouble(), TargetArmAngle, 2*Math.PI), 0); // CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle);
+            PivotPower = -CoralClawSettings.CoralPivotPID.calculate(Functions.angleDifference(CurrentArmAngle.getAsDouble(), TargetArmAngle, 2*Math.PI), 0); // CoralClawSettings.CoralPivotPID.calculate(CurrentArmAngle.getAsDouble(), TargetArmAngle);
         } else {
             PivotPower = 0;
             TargetArmAngle = CurrentArmAngle.getAsDouble();
@@ -355,7 +355,7 @@ public class CoralElevatorSystem extends SubsystemBase {
     public void goToAfterL4() { TargetElevatorHeight = 50; }
 
     public boolean isFinishedMoving() {
-        return Math.abs(CurrentElevatorHeight.getAsDouble() - TargetElevatorHeight) < CoralSystemSettings.armTolerance;
+        return Math.abs(ElevatorPower) < 0.03;
     }
 
 

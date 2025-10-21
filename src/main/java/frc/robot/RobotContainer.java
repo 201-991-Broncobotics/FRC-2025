@@ -89,13 +89,14 @@ public class RobotContainer {
         
         drivetrain.configureAutoBuilder();
         //selecting the pathplanner auto you want from dashboard + setting default
-        autoChooser = AutoBuilder.buildAutoChooser("middleAuto");
-        SmartDashboard.putData("Auto Mode", autoChooser);
-
+        
         NamedCommands.registerCommand("AutoAlign", autoAlignCommand);
         NamedCommands.registerCommand("PlaceL4Coral", placeL4CoralCommand);
         NamedCommands.registerCommand("RaiseElevatorToL4", raiseElevatorToL4Command);
         NamedCommands.registerCommand("StowElevator", stowElevatorCommand);
+
+        autoChooser = AutoBuilder.buildAutoChooser("middleAuto");
+        SmartDashboard.putData("Auto Mode", autoChooser);
 
 
         /* 
@@ -116,11 +117,11 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
 
         drivingProfile.setUpControllerInputs(
-            () -> driverJoystick.getLeftY() + ((driverJoystick.povUp().getAsBoolean())? 0.15:0.0) + ((driverJoystick.povDown().getAsBoolean())? -0.15:0.0), 
-            () -> -driverJoystick.getLeftX() + ((driverJoystick.povRight().getAsBoolean())? 0.15:0.0) + ((driverJoystick.povLeft().getAsBoolean())? -0.15:0.0), 
+            () -> -driverJoystick.getLeftY(), // + ((driverJoystick.povUp().getAsBoolean())? 0.15:0.0) + ((driverJoystick.povDown().getAsBoolean())? -0.15:0.0), 
+            () -> driverJoystick.getLeftX(), // + ((driverJoystick.povRight().getAsBoolean())? 0.15:0.0) + ((driverJoystick.povLeft().getAsBoolean())? -0.15:0.0), 
             () -> -driverJoystick.getRightX(), 
-            () -> 0.4 + 0.6 * driverJoystick.getRightTriggerAxis(), 
-            3, 3
+            () -> 0.3 + 0.7 * driverJoystick.getRightTriggerAxis(), 
+            2, 2
         );
 
         drivingProfile.setUpJoystickInputs(

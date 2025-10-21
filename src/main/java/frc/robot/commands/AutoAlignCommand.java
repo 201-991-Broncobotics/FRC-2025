@@ -27,7 +27,7 @@ public class AutoAlignCommand extends Command {
         // Called repeatedly while the command is scheduled.
         drivingProfile.updateAutoDriving();
         if ((drivingProfile.getAutoDrivePower() < 0.075) && (drivingProfile.getAutoDriveTurnPower() < 0.075)) {
-            TimeoutTimer.start(2);
+            TimeoutTimer.start(5);
         }
         if (TimeoutTimer.isPastTime()) {
             shouldBeFinished = true;
@@ -36,7 +36,7 @@ public class AutoAlignCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return shouldBeFinished; // Or false if it's a continuous action that needs a separate stop command
+        return true; // Or false if it's a continuous action that needs a separate stop command
     }
 
     @Override
