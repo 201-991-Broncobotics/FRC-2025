@@ -5,25 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "L4StartPath"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.0
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "AutoAlign"
+                  "pathName": "L4StartPath"
                 }
               },
               {
@@ -38,7 +26,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 1.0
           }
         },
         {
@@ -54,27 +42,28 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "L4EndPath"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "L4EndPath"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "StowElevator"
+                }
+              }
+            ]
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "StowElevator"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "waitTime": 1.0
           }
         }
       ]
