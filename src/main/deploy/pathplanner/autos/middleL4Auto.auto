@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "L4StartPath"
+                  "name": "AutoAlign"
                 }
               },
               {
