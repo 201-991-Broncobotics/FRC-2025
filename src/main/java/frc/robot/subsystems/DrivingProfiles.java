@@ -38,7 +38,7 @@ public class DrivingProfiles extends SubsystemBase {
 
     private boolean preferController = true;
 
-    private final double ControllerDeadband = 0.05, JoystickDeadband = 0.13, AutoThrottleDeadband = 0.05;
+    private final double ControllerDeadband = 0.0, JoystickDeadband = 0.13, AutoThrottleDeadband = 0.05;
 
     private double presetThrottleControl = 0.25;
     private boolean useThrottlePreset = false, autoAiming = false, autoDriving = false, autoStrafing = false;
@@ -316,10 +316,10 @@ public class DrivingProfiles extends SubsystemBase {
 
         for (int i = 0; i <= 5; i++) {
             double Angle = i*(Math.PI/3);
-            Vector2d BlueRightSide = AutoDrivingConstants.BlueReefCenter.plus(RightSide.withAngle(Angle + RightSide.angle())); // then adds it to the location of each reef and rotates it 6 times for each edge of the reef
-            Vector2d BlueLeftSide = AutoDrivingConstants.BlueReefCenter.plus(LeftSide.withAngle(Angle + LeftSide.angle()));
-            Vector2d RedRightSide = AutoDrivingConstants.RedReefCenter.plus(RightSide.withAngle(Angle + RightSide.angle()));
-            Vector2d RedLeftSide = AutoDrivingConstants.RedReefCenter.plus(LeftSide.withAngle(Angle + LeftSide.angle()));
+            Vector2d BlueRightSide = AutoDrivingConstants.BlueReefCenter.plus(Functions.SwitchAngle(RightSide, (Angle + RightSide.angle()))); // then adds it to the location of each reef and rotates it 6 times for each edge of the reef
+            Vector2d BlueLeftSide = AutoDrivingConstants.BlueReefCenter.plus(Functions.SwitchAngle(LeftSide, (Angle + LeftSide.angle())));
+            Vector2d RedRightSide = AutoDrivingConstants.RedReefCenter.plus(Functions.SwitchAngle(RightSide, (Angle + RightSide.angle())));
+            Vector2d RedLeftSide = AutoDrivingConstants.RedReefCenter.plus(Functions.SwitchAngle(LeftSide, (Angle + LeftSide.angle())));
             
             FieldTargetPoints.get(0).add(new Pose2d(BlueRightSide.x, BlueRightSide.y, new Rotation2d(Angle))); // and then adds them to the list
             FieldTargetPoints.get(0).add(new Pose2d(BlueLeftSide.x, BlueLeftSide.y, new Rotation2d(Angle)));
@@ -380,6 +380,16 @@ public class DrivingProfiles extends SubsystemBase {
             SmartDashboard.putNumber("AUTO Driving forward", autoForwardOutput);
             SmartDashboard.putNumber("AUTO Driving strafe", autoStrafeOutput);
             SmartDashboard.putNumber("AUTO Driving rotation", autoRotationOutput);
+            SmartDashboard.putNumber("forward", forwardOutput);
+            SmartDashboard.putNumber("strafe", strafeOutput);
+            SmartDashboard.putNumber("rotation", rotationOutput);
+            if (fowardControllerInput != null) {
+                SmartDashboard.putNumber("joystick forward", fowardControllerInput.getAsDouble());
+                SmartDashboard.putNumber("joystick strafe", strafeControllerInput.getAsDouble());
+                SmartDashboard.putNumber("joystick rotation", rotationControllerInput.getAsDouble());
+            }
+            
+
         }
         
         

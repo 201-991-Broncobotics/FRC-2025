@@ -5,6 +5,18 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "L4StartPath"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.0
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -26,7 +38,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.0
+            "waitTime": 0.5
           }
         },
         {
@@ -38,13 +50,19 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.0
+            "waitTime": 0.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "middleBack"
+            "pathName": "L4EndPath"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
           }
         },
         {

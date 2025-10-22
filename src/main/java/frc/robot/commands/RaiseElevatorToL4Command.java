@@ -14,6 +14,7 @@ public class RaiseElevatorToL4Command extends Command {
     @Override
     public void initialize() {
         coralElevatorSystem.goToL4();
+        coralElevatorSystem.update();
     }
 
     @Override
