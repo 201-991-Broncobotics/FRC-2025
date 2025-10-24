@@ -58,10 +58,14 @@ public class DrivingProfiles extends SubsystemBase {
 
     private Pose2d ClosestFieldTargetPoint = new Pose2d();
 
+    public boolean allowedToUseLimelight = true;
+
 
     public DrivingProfiles(CommandSwerveDrivetrain drivetrain, boolean PreferController) {
         DrivingProfiles.drivetrain = drivetrain;
         this.preferController = PreferController;
+
+        allowedToUseLimelight = true;
 
         RobotPose = drivetrain.getState().Pose;
 
@@ -284,6 +288,9 @@ public class DrivingProfiles extends SubsystemBase {
         rotationOutput = 0;
     }
 
+    public void stopUsingCamera() { allowedToUseLimelight = false; }
+    public void startUsingCamera() { allowedToUseLimelight = true; }
+
 
     public double getForwardOutput() { return forwardOutput; }
     public double getStrafeOutput() { return strafeOutput; }
@@ -316,10 +323,15 @@ public class DrivingProfiles extends SubsystemBase {
 
         for (int i = 0; i <= 5; i++) {
             double Angle = i*(Math.PI/3);
+            /* 
             Vector2d BlueRightSide = AutoDrivingConstants.BlueReefCenter.plus(Functions.SwitchAngle(RightSide, (Angle + RightSide.angle()))); // then adds it to the location of each reef and rotates it 6 times for each edge of the reef
             Vector2d BlueLeftSide = AutoDrivingConstants.BlueReefCenter.plus(Functions.SwitchAngle(LeftSide, (Angle + LeftSide.angle())));
             Vector2d RedRightSide = AutoDrivingConstants.RedReefCenter.plus(Functions.SwitchAngle(RightSide, (Angle + RightSide.angle())));
-            Vector2d RedLeftSide = AutoDrivingConstants.RedReefCenter.plus(Functions.SwitchAngle(LeftSide, (Angle + LeftSide.angle())));
+            Vector2d RedLeftSide = AutoDrivingConstants.RedReefCenter.plus(Functions.SwitchAngle(LeftSide, (Angle + LeftSide.angle()))); */
+            Vector2d BlueRightSide = AutoDrivingConstants.BlueReefCenter.plus(RightSide.withAngle(Angle + RightSide.angle())); // then adds it to the location of each reef and rotates it 6 times for each edge of the reef
+            Vector2d BlueLeftSide = AutoDrivingConstants.BlueReefCenter.plus(LeftSide.withAngle(Angle + LeftSide.angle()));
+            Vector2d RedRightSide = AutoDrivingConstants.RedReefCenter.plus(RightSide.withAngle(Angle + RightSide.angle()));
+            Vector2d RedLeftSide = AutoDrivingConstants.RedReefCenter.plus(LeftSide.withAngle(Angle + LeftSide.angle()));
             
             FieldTargetPoints.get(0).add(new Pose2d(BlueRightSide.x, BlueRightSide.y, new Rotation2d(Angle))); // and then adds them to the list
             FieldTargetPoints.get(0).add(new Pose2d(BlueLeftSide.x, BlueLeftSide.y, new Rotation2d(Angle)));
@@ -357,7 +369,7 @@ public class DrivingProfiles extends SubsystemBase {
         
         if (drivetrain != null) {
             PoseEstimate LimelightPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
-            if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate)) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, LimelightPoseEstimate.timestampSeconds);
+            if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate) && allowedToUseLimelight) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, LimelightPoseEstimate.timestampSeconds);
 
             RobotPose = drivetrain.getState().Pose;
             SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
