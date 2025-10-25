@@ -172,7 +172,8 @@ public class RobotContainer {
         new JoystickButton(driverFlightHotasOne, 6).onTrue(new InstantCommand(drivingProfile::enableSlowDown)).onFalse(new InstantCommand(drivingProfile::disableSlowDown));
 
         // reset the field-centric heading on left bumper press
-        driverJoystick.y().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverJoystick.y().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())); // stopUsingCamera
+        driverJoystick.y().onTrue(new InstantCommand(drivingProfile::stopUsingCamera));
         new JoystickButton(driverFlightHotasOne, 5).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Run SysId routines when holding back/start and X/Y.
