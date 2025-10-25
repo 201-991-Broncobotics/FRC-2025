@@ -194,6 +194,8 @@ public class RobotContainer {
         operatorJoystick.povDown().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
         operatorJoystick.povLeft().toggleOnTrue(new InstantCommand(coralElevatorSystem::DepositOnL4));
         operatorJoystick.povUp().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToL4));
+        operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::StowCoralArm));
+
         //operatorJoystick.povRight().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
 
         //operatorJoystick.x().toggleOnTrue(new InstantCommand(coralElevatorSystem::ArmToggleEnabled));

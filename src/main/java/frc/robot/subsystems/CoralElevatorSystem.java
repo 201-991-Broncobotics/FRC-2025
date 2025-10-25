@@ -347,11 +347,17 @@ public class CoralElevatorSystem extends SubsystemBase {
     public void goToL3() { goToPreset(CoralSystemPresets.L4Reef); }
     public void goToL2() { goToPreset(CoralSystemPresets.L2Reef); }
     public void goToStow() { 
+        // goToPreset(CoralSystemPresets.Stowed); 
+        TargetArmAngle = Math.toRadians(-90);
+    }
+    public void ActuallyGoToStow() { // since this actually was used in a command
         goToPreset(CoralSystemPresets.Stowed); 
         TargetArmAngle = Math.toRadians(90);
     }
 
+
     public void DepositOnL4() { TargetArmAngle = Math.toRadians(15); }
+    public void StowCoralArm() { TargetArmAngle = Math.toRadians(90); }
     public void goToAfterL4() { TargetElevatorHeight = 50; }
 
     public boolean isFinishedMoving() {

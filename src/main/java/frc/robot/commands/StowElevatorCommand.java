@@ -13,7 +13,7 @@ public class StowElevatorCommand extends Command {
 
     @Override
     public void initialize() {
-        coralElevatorSystem.goToStow();
+        coralElevatorSystem.ActuallyGoToStow();
     }
 
     @Override

@@ -31,17 +31,17 @@ public class Settings {
         public static double minHeight = 0;
 
         public static PIDControllerSettingsReference ElevatorReferencePID = new PIDControllerSettingsReference(
-                0.08,
+                0.09,
                 0,
                 0,
                 0,
                 minHeight,
                 maxHeight,
                 0,
-                0.4,
+                0.6,
                 0,
                 0,
-                40,
+                60,
                 .8,
                 0,
                 0,
@@ -68,7 +68,7 @@ public class Settings {
         public static PIDController CoralPivotPID = new PIDController(0.155, 0, 0); // 0.7, 0, 0
         public static double maxAngle = 90;
         public static double minAngle = -93;
-        public static double manualPivotSpeed = Math.toRadians(90); // radians per second
+        public static double manualPivotSpeed = Math.toRadians(110); // radians per second
 
 
         public static double startRoll = 0;

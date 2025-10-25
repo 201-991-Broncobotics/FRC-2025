@@ -372,7 +372,7 @@ public class DrivingProfiles extends SubsystemBase {
             if (LimelightHelpers.validPoseEstimate(LimelightPoseEstimate) && allowedToUseLimelight) drivetrain.addVisionMeasurement(LimelightPoseEstimate.pose, LimelightPoseEstimate.timestampSeconds);
 
             RobotPose = drivetrain.getState().Pose;
-            SmartDashboard.putString("ROBOT POSE:", "X:" + RobotPose.getX() + " Y:" + RobotPose.getY() + " R:" + RobotPose.getRotation().getDegrees());
+            SmartDashboard.putString("ROBOT POSE:", "X:" + Functions.round(RobotPose.getX(), 3) + " Y:" + Functions.round(RobotPose.getY(), 3) + " R:" + Functions.round(RobotPose.getRotation().getDegrees(), 2));
 
             double cameraTX = LimelightHelpers.getTX("limelight");
 
@@ -382,7 +382,7 @@ public class DrivingProfiles extends SubsystemBase {
             if (CurrentVector.distFrom(AutoDrivingConstants.BlueReefCenter) < CurrentVector.distFrom(AutoDrivingConstants.RedReefCenter)) {
                 SmartDashboard.putString("Vision Closer Reef", "Blue");
             } else SmartDashboard.putString("Vision Closer Reef", "Red");
-            SmartDashboard.putString("Vision TARGET:", "X:" + ClosestFieldTargetPoint.getX() + " Y:" + ClosestFieldTargetPoint.getY() + " R:" + ClosestFieldTargetPoint.getRotation().getDegrees());
+            SmartDashboard.putString("Vision TARGET:", "X:" + Functions.round(ClosestFieldTargetPoint.getX(), 3) + " Y:" + Functions.round(ClosestFieldTargetPoint.getY(), 3) + " R:" + Functions.round(ClosestFieldTargetPoint.getRotation().getDegrees(), 2));
 
 
             SmartDashboard.putNumber("Vision TX", cameraTX);
