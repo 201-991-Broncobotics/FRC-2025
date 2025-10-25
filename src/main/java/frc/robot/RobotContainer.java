@@ -132,6 +132,8 @@ public class RobotContainer {
             1, 2
         );  
 
+        drivingProfile.setUpDpadControls(() -> driverJoystick.getHID().getPOV()); // dpad finally
+
         // drivingProfile.giveJoystickForTelemetry(driverFlightHotasOne);
 
         drivingProfile.setDefaultCommand(new RunCommand(drivingProfile::update, drivingProfile));
@@ -190,7 +192,7 @@ public class RobotContainer {
         // OPERATOR CONTROLS
 
         coralElevatorSystem.setManualControl(() -> ((operatorJoystick.leftBumper().getAsBoolean())? 0.5:0.0) + (-Functions.deadbandValue(operatorJoystick.getLeftTriggerAxis(), 0.1))); //-Functions.deadbandValue(operatorJoystick.getLeftY(),  0.1)); // 
-        coralElevatorSystem.setManualPivotControl(() -> -Functions.deadbandValue(operatorJoystick.getLeftY(),  0.05));
+        coralElevatorSystem.setManualPivotControl(() -> Functions.throttleCurve(-Functions.deadbandValue(operatorJoystick.getLeftY(),  0.01), 2));
         operatorJoystick.povDown().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToStow));
         operatorJoystick.povLeft().toggleOnTrue(new InstantCommand(coralElevatorSystem::DepositOnL4));
         operatorJoystick.povUp().toggleOnTrue(new InstantCommand(coralElevatorSystem::goToL4));

@@ -30,6 +30,12 @@ public class DrivingProfiles extends SubsystemBase {
     private DoubleSupplier fowardControllerInput, strafeControllerInput, rotationControllerInput, throttleControllerInput;
     private DoubleSupplier fowardJoystickInput, strafeJoystickInput, rotationJoystickInput, throttleJoystickInput;
     private DoubleSupplier autoThrottleControllerInput, autoThrottleJoystickInput;
+    private DoubleSupplier povInput;
+
+    private double miniPower = 0.08;
+
+    private boolean usePov = false;
+
 
     private double forwardOutput = 0, strafeOutput = 0, rotationOutput = 0;
 
@@ -122,6 +128,11 @@ public class DrivingProfiles extends SubsystemBase {
         this.autoThrottleJoystickInput = autoThrottleJoystickInput;
     }
 
+    public void setUpDpadControls(DoubleSupplier povInput) {
+        this.povInput = povInput;
+        usePov = true;
+    }
+
 
     public void update() {
         if (preferController) {
@@ -132,6 +143,12 @@ public class DrivingProfiles extends SubsystemBase {
             if (updateJoystick());
             else if (updateController());
             else stopDriving();
+        }
+
+        if (usePov && povInput.getAsDouble() >= 0) { // returns -1 when not pressed
+            // pov is stupid: 0° is forward, 90° is right, 270° is left
+            forwardOutput -= miniPower * Math.cos(Math.toRadians(povInput.getAsDouble()));
+            strafeOutput -= miniPower * Math.sin(Math.toRadians(povInput.getAsDouble()));
         }
 
         if (useAutoDrivingThrottle) autoDriving = (AutoDrivingThrottle.getAsDouble() > AutoThrottleDeadband);
